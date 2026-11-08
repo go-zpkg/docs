@@ -119,14 +119,34 @@ A bottle published before `bk` v0.47.0 records no origin and therefore reads as
 **not promotable**. That is the intended answer rather than a regression:
 nothing is promoted that cannot be vouched for.
 
-## And where a recipe declares nothing, which is 903 of 904 {#and-where-a-recipe-declares-nothing-which-is-903-of-904}
+## And where a recipe declares nothing, which is nearly everywhere {#and-where-a-recipe-declares-nothing-which-is-903-of-904}
 
 Verifying a declared `sha:` is worth having and reaches almost nothing. Measured
-on 2026-10-05 against a fresh `pkgxdev/pantry`: **one recipe of 904** carries a
-`sha:` at all, and that one — `openssl.org` — points at `${{url}}.sha256`, a file
-served by the **same host** as the tarball. It catches corruption in transit,
-which TLS already catches. It does not catch substitution: a host serving
-different bytes serves a matching `.sha256` beside them.
+on 2026-10-05 against a fresh `pkgxdev/pantry`: **one recipe of 904** carried a
+`sha:` at all. Re-counted on 2026-11-08 at pantry commit `4eb778f`, with the
+builder's own loader deciding what a recipe is rather than a grep:
+
+| field | recipes | which |
+|---|---:|---|
+| `sha:` | 1 | `openssl.org` |
+| `sha256:` | 1 | `github.com/Virviil/oci2git` |
+| `sig:` | 3 | `ffmpeg.org`, `libuv.org`, `openssl.org` |
+
+out of **1932** recipes. A fourth `sig:` sits in
+`haskell.org/package.yml-from-source`, which is not a filename the loader reads
+— so it is in the tree and not in the pantry.
+
+⛔ The projects are named because the earlier figure was quoted for a month and
+one half of it was wrong: this page and go-zpkg/zbk#282 both said `openssl.org`
+was the **only** recipe naming a `sig:`, and there are three. A count nobody can
+follow back to a name is a count nobody can refute, including its author.
+
+`openssl.org`'s `sha:` points at `${{url}}.sha256`, a file served by the **same
+host** as the tarball. It catches corruption in transit, which TLS already
+catches. It does not catch substitution: a host serving different bytes serves a
+matching `.sha256` beside them. `sha256:` is the stronger field — pinned in the
+recipe, needing no network, and able to refuse a **first** fetch, which is the
+case neither of the others covers — and it is the one used once.
 
 So the source mirror grew a second job. It already kept every archive a build
 downloads, addressed by its SHA-256; it now also records **which digest each URL
@@ -155,12 +175,54 @@ It is **opt-in**: `--source-mirror` is empty unless a run asks for it. Turning i
 on is safe rather than risky — the mirror's existing contents carry only content
 tags, so the first pass records and only the second enforces.
 
-**Still missing**, and it is a decision rather than a patch: `openssl.org` also
-declares `sig: ${{url}}.asc`, and nothing reads that field. It is the only
-control in the recipe format a compromised host could not forge — the signing
-key is not on `www.openssl.org` — and honouring it needs a key policy: whose
-key, pinned where, and what happens when a release is signed by a new one. A
-verifier that accepts any key proves only that somebody signed something.
+### The signature: read now, and at the moment the digest is written {#the-signature-read-at-pin-time}
+
+`sig:` is the only control in the recipe format a compromised host could not
+forge — the signing key is not on `www.openssl.org`. Nothing read it until
+`zbk` v0.73.0, and the question that held it up was never the cryptography. It
+was **whose key, pinned where**: a verifier that accepts any key proves only
+that somebody signed something.
+
+`zbk sourcepin --sig` answers it, and **where** it answers is the design:
+
+```
+zbk sourcepin --sig auto --key upstream.asc \
+  --key-source "https://upstream.example/keys, fetched 2026-11-08" \
+  --version 5.8.4 https://upstream.example/xz-5.8.4.tar.gz
+```
+
+The check happens when the digest is **recorded**, not at every build. That is
+Guix's division, read from its own manual: the `origin` record has **no
+signature field at all**, because `guix refresh` does the checking and the hash
+is then the durable pin. The signature's job is to justify *writing* the hash.
+Verifying at every build instead — which Gentoo's `verify-sig` and Arch's
+`validpgpkeys` do — needs the signature *and* the key reachable forever, from
+inside a sandbox, for every consumer: three network dependencies for a fact
+settled once.
+
+Two deliberate divergences from the four systems that do this at all:
+
+**No keyserver is ever asked.** Guix's `--key-download` defaults to `auto`,
+documented as `interactive` on a TTY and *"else `always`"* — and `always` is
+"Always download missing OpenPGP keys from the key server". In CI, where this
+runs, an unknown key would be fetched and accepted, and the check degrades from
+"this key signed it" to "somebody signed it". Here the keyring is a file the
+author passes, and an unknown key is a refusal.
+
+**`--key-source` is mandatory, with no default.** Not one of Gentoo, Arch,
+Debian or Guix records where a fingerprint came from. Debian's `uscan(1)` is the
+most explicit and it is an instruction rather than a procedure: *"You must verify
+the downloaded OpenPGP key using its full fingerprint value which you know is
+the trusted one."* Which you know. That is unauditable by construction, so this
+asks, and prints a `provenance` block naming the fingerprint, the identity, the
+signature URL that actually answered, and the author's own basis for trusting
+the key.
+
+**Still missing**: the builder does not honour a recipe's `sig:` at *build*
+time. Under the division above it does not need to — the digest written beside
+it is what the build checks — but a recipe pinned before v0.73.0 carries a
+digest nobody verified a signature for, and nothing distinguishes the two
+today.
 
 ## The trust set {#the-trust-set}
 
