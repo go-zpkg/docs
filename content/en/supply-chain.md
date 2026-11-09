@@ -218,11 +218,68 @@ asks, and prints a `provenance` block naming the fingerprint, the identity, the
 signature URL that actually answered, and the author's own basis for trusting
 the key.
 
+### ⛔⛔ And then it was used on a real project, which found three more things {#using-it-found-three-more-things}
+
+v0.73.0 shipped the flags above. Pinning one real tarball — `gzip 1.15` from
+`ftp.gnu.org`, which publishes a detached signature beside every archive —
+produced three findings, and v0.74.0 is all three.
+
+**A keyring is a set, not a choice.** `https://ftp.gnu.org/gnu/gnu-keyring.gpg`
+is **3 700 423 bytes and holds every GNU maintainer's key**. `--key` pointed at
+it accepts a signature from *any* of them — which is exactly the degradation
+criticised two paragraphs above in Guix's `--key-download=always`. Writing that
+criticism and then shipping the same hole took one real run to find.
+`--fingerprint` is Arch's `validpgpkeys`, whose `PKGBUILD(5)` states the
+semantics: makepkg "will only accept signatures from the keys listed here and
+**will ignore the trust values from the keyring**". Compared on the *primary*
+key, with spaces and colons ignored, because that is how `gpg --fingerprint`
+prints one.
+
+**That keyring cannot be read whole.** `openpgp.ReadKeyRing` refuses it with
+`Cannot have multiple embedded signatures` — it stops at the first entity it
+cannot assemble and returns *nothing*, discarding what came before. One entity
+in a thirty-year public archive. So naming a fingerprint also **rescues** such a
+file: only that key is assembled and the rest is never touched. 326 primary keys
+were walked to reach gzip's. That is the mechanical reason Debian ships
+`debian/upstream/signing-key.asc` and Gentoo a `sec-keys/openpgp-keys-<project>`
+package — one project, one key — rather than a convention.
+
+**`gpg --keyring` is silently ignored under `keyboxd`.** The obvious workaround,
+exporting the one key with gpg, prints `Note: Specified keyrings are ignored due
+to option "use-keyboxd"` and `WARNING: nothing exported`, **exits 0**, and
+leaves a zero-byte file. An extraction that reports success having done nothing
+is not something to build a pipeline on, which is why the key selection happens
+in Go, over the bytes.
+
+So the output now always says how many keys the file held, and warns when there
+are several and no fingerprint was named: an author otherwise cannot tell "I
+passed a choice" from "I passed a set" by reading the `signed by` line.
+
 **Still missing**: the builder does not honour a recipe's `sig:` at *build*
 time. Under the division above it does not need to — the digest written beside
 it is what the build checks — but a recipe pinned before v0.73.0 carries a
 digest nobody verified a signature for, and nothing distinguishes the two
 today.
+
+### The first recipe that carries one {#the-first-recipe-that-carries-one}
+
+`gnu.org/gzip` in `go-zpkg/pantry-overlay` is the fourth whole recipe of the
+sovereign pantry and the first whose digest is vouched for. Its `provenance`
+block records both limits on the warrant, because every other distribution's
+documentation is silent on them:
+
+- the key came from a file served by the **same host** as the tarball, which
+  establishes continuity and not independence — a host serving different bytes
+  could serve a matching keyring. It is still strictly more than a digest alone,
+  since the signature is over the archive and the keyring is a published, dated,
+  widely-mirrored artefact; but it is not a key obtained out of band, and saying
+  so is the entire point of recording where a fingerprint came from;
+- the keyring is a set, so the fingerprint had to be named.
+
+The digest was then confirmed by a second, independent fetch-and-hash. That is
+not belt-and-braces for its own sake: this builder has a recorded incident of
+`curl` writing a 504 error page and `shasum` hashing it into a perfectly
+plausible digest, which is why `zbk sourcepin` exists at all.
 
 ## The trust set {#the-trust-set}
 
