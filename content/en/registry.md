@@ -47,14 +47,14 @@ GitHub Actions workflows build each recipe with
   parts built from source in the pantry overlay, following wasi-sdk's
   `cmake/wasi-sdk-sysroot.cmake` — `compiler-rt.llvm.org/wasi` (builtins for
   wasm32-wasip1 and clang's headers, as a clang resource dir) and
-  `github.com/WebAssembly/wasi-libc` (the sysroot). `bk --platform wasip1/wasm
+  `github.com/WebAssembly/wasi-libc` (the sysroot). `zbk --platform wasip1/wasm
   build` adds the three bottles and imposes `clang --target=wasm32-wasip1
   --sysroot=… -resource-dir=… -mcpu=lime1 --rtlib=compiler-rt` through `$BK_CC` /
   `$BK_CXX`, the stencil the cc/gcc/clang shims re-exec. Published as `wasip1/wasm`
   after a run under wasmtime: `zlib.net` 1.3.2 (libz.a, minigzip), `sqlite.org`
   3.53.4 (the shell) and `lua.org` 5.4.9 (errors via setjmp/longjmp, compiled to the
   standard WebAssembly exception-handling instructions — a `pcall(error)` runs under
-  wasmtime 50). The build runs **inside the sovereign rootfs** (`bk builder`'s tree,
+  wasmtime 50). The build runs **inside the sovereign rootfs** (`zbk builder`'s tree,
   entered by `builder/sovereign-bk.sh`), so `sh`, `make`, coreutils, clang and wasm-ld
   are bottles in that tree and a "what ran, from where" step prints their resolved
   paths from inside the chroot; the runner contributes three static Go binaries, the

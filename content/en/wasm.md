@@ -6,7 +6,7 @@ weight: 85
 # Packages that run in a WebAssembly runtime {#packages-that-run-in-a-webassembly-runtime}
 
 `wasip1/wasm` is a platform of the factory like `linux/x86-64` or
-`darwin/aarch64`: the same recipes, the same `bk publish`, the same registry at
+`darwin/aarch64`: the same recipes, the same `zbk publish`, the same registry at
 `oci://ghcr.io/go-pkgx/packages`, and the same catalogue. What differs is the
 one property that changes everything downstream.
 
@@ -34,7 +34,8 @@ Two consequences follow, and the second is a trap:
   Confirmed in the catalogue generated `2026-10-31T21:28:42Z`.
 
   It was not always so, and the shape of the defect is worth keeping. Until
-  bk v0.46.0, `bk catalog` read a project's fields from the **pantry host**
+  v0.46.0 — when the command was still called `bk` — `zbk catalog` read a
+  project's fields from the **pantry host**
   recipe even when a platform lane had its own, so `lua.org` on wasip1/wasm
   listed `gnu.org/readline` — a package not published for the platform, and one
   the wasm build does not use at all, because it builds Lua's generic `ansi`
@@ -54,7 +55,7 @@ Two consequences follow, and the second is a trap:
   Two things from that episode are worth copying rather than forgetting. It was
   found by **running** every published module, not by parsing the catalogue — a
   consumer that only reads the catalogue cannot see either direction. And
-  `bk provides` now exists to ask the question in the factory: it compares a
+  `zbk provides` now exists to ask the question in the factory: it compares a
   published bottle's actual `bin/*` against the `provides` the catalogue claims,
   and reports "listed, no file" and "file, not listed" as the separate failures
   they are.
@@ -212,7 +213,7 @@ one linking the floating `libcxx`.
 Tracked in [go-zpkg/packages#393](https://github.com/go-zpkg/packages/issues/393),
 together with the separate finding that the publish step replaced an existing
 `(project, version, platform)` instead of skipping it. Until both are closed,
-**a version does not pin bytes on this platform**; a `bk lock` pins the version,
+**a version does not pin bytes on this platform**; a `zbk lock` pins the version,
 and that is a weaker guarantee than it sounds.
 
 ### A tag that is not `v<version>`

@@ -527,7 +527,7 @@ channel checkout, a package repo. The zpkgx-native equivalent is an artefact
 in the registry itself, so the registry carries a **catalogue**:
 
 ```console
-$ bk catalog --pantry … --overlay … -o catalog.json
+$ zbk catalog --pantry … --overlay … -o catalog.json
 catalog: 1908 project(s) → catalog.json
 ```
 

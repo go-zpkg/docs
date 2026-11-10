@@ -189,7 +189,7 @@ build step from fetching something nobody declared.
 
 ### What a time machine would still need {#time-machine}
 
-`bk lock` is already most of the way, and it was written against Guix's own
+`zbk lock` is already most of the way, and it was written against Guix's own
 statement of the problem — *"to reproduce a profile bit-for-bit, manifests
 alone might not be enough"*. It records the pantry revision, the overlay
 revision, every resolved version, a per-project spec hash over
@@ -204,7 +204,7 @@ it is not pinned at all.
 
 Four things stand between that and `guix time machine`:
 
-1. **The lock pins inputs, not output bytes.** `bk lock`'s own documentation
+1. **The lock pins inputs, not output bytes.** `zbk lock`'s own documentation
    says so rather than implying otherwise: a bottle digest would pin them, and
    a lock taken before anything is built has no output to name.
 2. **Nothing measures reproducibility.** No build runs twice and compares. Until
