@@ -64,7 +64,7 @@ buildenv: lz4.org 1.10.0 (linux/s390x): the provenance records no build environm
 
 ⛔ **An empty build environment is a hint, not a statement.** A bootstrap build
 resolves no bottles, so its environment is empty — but so is a mirrored
-bottle's, and so is every bottle published by an older `bk`. Three situations,
+bottle's, and so is every bottle published by an older `zbk`. Three situations,
 one silence, and a gate cannot read a silence.
 
 So the factory records the verdict, and `zbk origin` reads it back:
@@ -115,7 +115,7 @@ Three further properties, each a way this could have been built wrong:
   judgement about the bottle — a gate that folds the two together turns every
   network blip into a permanent verdict.
 
-A bottle published before `bk` v0.47.0 records no origin and therefore reads as
+A bottle published before `zbk` v0.47.0 records no origin and therefore reads as
 **not promotable**. That is the intended answer rather than a regression:
 nothing is promoted that cannot be vouched for.
 
@@ -522,7 +522,7 @@ both hold one base64 line:
    `SigningPublicKey`. Release `bottle`; the clients pick it up on their next
    release.
 3. Set `BOTTLE_SIGNING_KEY` to the new **secret** key.
-4. Publish one bottle and read it back from another machine — `pkgs builds
+4. Publish one bottle and read it back from another machine — `zpkgs builds
    <project>@<version>` must show it signed by the new name.
 
 Nothing already published needs re-signing: the old key stays trusted
@@ -733,7 +733,7 @@ is the one case where a finding can be both correct and uninteresting.
 A short history is worth keeping beside the output, because it bears on how
 much a clean run is worth. The first sweep of a pantry with this command
 produced findings that measured the command: a soname was attributed to one
-owner when two projects shipped a file of that name (fixed in `bk` v0.44.1),
+owner when two projects shipped a file of that name (fixed in `zbk` v0.44.1),
 and a real `libfolly.so.0.58.0-dev` was refused for its non-numeric version
 suffix while a `libstdc++.so.6.0.33-gdb.py` had earlier been counted as a
 library (v0.44.2: the name is a prefilter, the magic number decides). Both were
@@ -831,9 +831,9 @@ fall back to the built-in one: naming a file is a statement about what you
 want, and substituting something else would hide the mistake behind behaviour
 that looks like it worked.
 
-The build side is not there yet. `bk` resolves build-time dependencies through
+The build side is not there yet. `zbk` resolves build-time dependencies through
 the same resolver and does not carry the list, so the factory still builds
-against 3.6.4 what zpkgx now runs against 3.5.8 (go-zpkg/bk#378). The list also
+against 3.6.4 what zpkgx now runs against 3.5.8 (go-zpkg/zbk#378). The list also
 still lives in the binary rather than in the signed catalogue, where it would
 be computed instead of committed (go-zpkg/bottle#179).
 

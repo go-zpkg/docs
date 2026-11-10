@@ -3,9 +3,9 @@ title: "FROM scratch"
 weight: 20
 ---
 
-# Running pkgx packages on `FROM scratch` {#running-zpkgx-packages-on-from-scratch}
+# Running zpkgx packages on `FROM scratch` {#running-zpkgx-packages-on-from-scratch}
 
-This document records what it takes to run pkgx packages on a literally-empty
+This document records what it takes to run zpkgx packages on a literally-empty
 base image (no libc, no shell, no coreutils), the conformance status of common
 packages, the fixes `zpkgm` maintains to get there, and a proposal for the pkgx
 maintainers. It is a living document — extend it as new packages are tested.
