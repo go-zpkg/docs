@@ -127,7 +127,7 @@ flags: -h/--help  -v/--version  -p/--pin  -P/--prefix DIR  -s/--from-scratch
 env:   ZPKG_DIR     package store (default: ~/.zpkg)
        ZPKG_DIST    package source (default: oci://ghcr.io/go-pkgx/packages, signed)
        ZPKG_VERIFY  verify signatures, fail-closed (default: on)
-       PKGM_PREFIX  default install prefix (ideal for FROM scratch)
+       ZPKGM_PREFIX default install prefix (ideal for FROM scratch)
 ```
 
 The command surface is `install`/`uninstall`/`shim`/`list`/`outdated`/

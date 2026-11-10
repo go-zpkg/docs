@@ -38,18 +38,18 @@ part", and `0` is what falls back to the runner's distribution.
 - `zbk builder` stages the rootfs itself: static Go binaries plus toolchain
   bottles from the signed registry, nothing else;
 - design note:
-  [`bk/docs/from-scratch-toolchain.md`](https://github.com/go-zpkg/zbk/blob/main/docs/from-scratch-toolchain.md).
+  [`zbk/docs/from-scratch-toolchain.md`](https://github.com/go-zpkg/zbk/blob/main/docs/from-scratch-toolchain.md).
 
 **Corrected 2026-10-27.** This page previously described Phase B as
 experimental, living on branch `feat/zpkgx-glibc-toolchain`, and gated behind
 a `BK_ZPKG_LIBC=1` environment variable. All three were out of date: the work
 is on `main`, the gate is the `--libc` flag above, and `BK_ZPKG_LIBC` appears
-nowhere in bk's code — only inside the design note that first proposed it.
+nowhere in zbk's code — only inside the design note that first proposed it.
 
 ### What a sovereign toolchain does not reach {#what-a-sovereign-toolchain-does-not-reach}
 
 The sysroot, the `-isystem` directories and the runtime choice reach a build
-**through the compiler driver** — `cc`, which is bk's own shim and re-execs
+**through the compiler driver** — `cc`, which is zbk's own shim and re-execs
 `$BK_CC`, or `$CC`. A tool that drives the compiler some other way sees none
 of it.
 
@@ -62,10 +62,10 @@ bindings therefore got the container's idea of a libc, or none at all —
 ```
 
 — in a build where openssl 3.6.4 had been found, probed and configured
-correctly a few lines earlier. Since bk v0.43.0 sovereign mode also exports
+correctly a few lines earlier. Since zbk v0.43.0 sovereign mode also exports
 `BINDGEN_EXTRA_CLANG_ARGS`, the variable bindgen's own documentation names
 for exactly this, carrying the header-finding flags only and appended to
 whatever the recipe set.
 
-See [Running pkgx packages on FROM scratch]({{< relref "from-scratch.md" >}}) for why a system-linked
+See [Running zpkgx packages on FROM scratch]({{< relref "from-scratch.md" >}}) for why a system-linked
 package needs closure completion to run on scratch, and what Phase B removes.

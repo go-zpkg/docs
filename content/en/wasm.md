@@ -41,7 +41,7 @@ Two consequences follow, and the second is a trap:
   the wasm build does not use at all, because it builds Lua's generic `ansi`
   platform with no line editor. Nothing broke at run time, because nothing
   needs resolving, which is exactly why it went unnoticed.
-  ([go-zpkg/bk#376](https://github.com/go-zpkg/zbk/issues/376), fixed.)
+  ([go-zpkg/zbk#376](https://github.com/go-zpkg/zbk/issues/376), fixed.)
 
 - **`provides` is trustworthy again, and it is the half that mattered.** It is
   what `zpkgx -Q <command>`, `zpkgs search` by command name and the `<TAB>` index
