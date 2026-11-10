@@ -28,14 +28,14 @@ literally-empty `FROM scratch` base with no system libc at all.
 
 It is **shipped, and it is the default**. The factory's `sovereign` input says
 so in its own description: *blank* builds inside the `FROM scratch` rootfs
-`bk builder` stages, "so neither the host's libc nor its compiler takes
+`zbk builder` stages, "so neither the host's libc nor its compiler takes
 part", and `0` is what falls back to the runner's distribution.
 
-- `bk build --libc=zpkgx` and `bk factory --libc=zpkgx` target the
+- `zbk build --libc=zpkgx` and `zbk factory --libc=zpkgx` target the
   `gnu.org/glibc` bottle — its crt objects, its libc, its dynamic linker —
   instead of the container's;
 - `--glibc <version>` pins that sysroot to an exact glibc line;
-- `bk builder` stages the rootfs itself: static Go binaries plus toolchain
+- `zbk builder` stages the rootfs itself: static Go binaries plus toolchain
   bottles from the signed registry, nothing else;
 - design note:
   [`bk/docs/from-scratch-toolchain.md`](https://github.com/go-zpkg/zbk/blob/main/docs/from-scratch-toolchain.md).

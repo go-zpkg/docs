@@ -58,7 +58,7 @@ of there needs one fact per bottle: *was the host's toolchain involved?*
 Measured on 2026-11-01, the registry could not answer:
 
 ```console
-$ bk buildenv --platform linux/s390x lz4.org 1.10.0
+$ zbk buildenv --platform linux/s390x lz4.org 1.10.0
 buildenv: lz4.org 1.10.0 (linux/s390x): the provenance records no build environment
 ```
 
@@ -67,10 +67,10 @@ resolves no bottles, so its environment is empty — but so is a mirrored
 bottle's, and so is every bottle published by an older `bk`. Three situations,
 one silence, and a gate cannot read a silence.
 
-So the factory records the verdict, and `bk origin` reads it back:
+So the factory records the verdict, and `zbk origin` reads it back:
 
 ```console
-$ bk origin --platform linux/s390x lz4.org 1.10.0
+$ zbk origin --platform linux/s390x lz4.org 1.10.0
 lz4.org 1.10.0 linux/s390x
   host toolchain used: no — built from bottles
   inputs resolved from: oci://ghcr.io/go-pkgx/packages
@@ -82,8 +82,8 @@ one built against the production one.
 
 ### A gate whose default answer is no {#a-gate-whose-default-answer-is-no}
 
-`bk origin --promotable` is silent and exits 0 **only** when the provenance
-proves the host toolchain was unused. `bk factory --mirror-from …
+`zbk origin --promotable` is silent and exits 0 **only** when the provenance
+proves the host toolchain was unused. `zbk factory --mirror-from …
 --require-origin` applies the same rule to every bottle it would copy, and
 refuses the rest:
 
@@ -618,7 +618,7 @@ decision stays a pull request, by a person.
 ### What a decision looks like, and how far it reaches {#what-a-decision-looks-like-and-how-far-it-reaches}
 
 A decision is a dated event in `advisories/<project>/advisories.yaml`, and
-`bk publish --advisories` attaches it to the bottle as an **OpenVEX v0.2.0**
+`zbk publish --advisories` attaches it to the bottle as an **OpenVEX v0.2.0**
 document, signed with everything else.
 
 ```yaml
@@ -671,19 +671,19 @@ libssl at all**. A rebuild linked openssl 3.6.4 statically into the library —
 `DT_NEEDED`.
 
 A broken reference is **visible**: an unresolvable soname is something a sweep
-counts and `bk unresolved` reports. A vendored copy is **invisible**. The
+counts and `zbk unresolved` reports. A vendored copy is **invisible**. The
 manifest still reads `openssl.org ^3`, so the scan asks about the right project
 at the right version and gets a true answer about a copy the bottle does not
 load. When openssl ships a fix, updating the openssl bottle does not change the
 bottle that embedded it, and its own version does not move either. There is
 nothing to compare.
 
-`bk unlinked` asks the question backwards — which projects does a bottle
+`zbk unlinked` asks the question backwards — which projects does a bottle
 *declare* and never link?
 
 ```sh
-bk unlinked --platform linux/x86-64 rpm.org/rpm-sequoia
-bk unlinked --fail --platform linux/x86-64 < recipes.txt   # as a gate
+zbk unlinked --platform linux/x86-64 rpm.org/rpm-sequoia
+zbk unlinked --fail --platform linux/x86-64 < recipes.txt   # as a gate
 ```
 
 ```
@@ -747,10 +747,10 @@ Everything above asks *what is known to be wrong with this version*. A release
 line upstream has abandoned has nothing known about it **yet** — and never
 will, because nobody is looking and no fix is coming. So the daily sweep
 returns a clean zero for a package whose upstream stopped issuing fixes years
-ago. `bk eol` asks the other question:
+ago. `zbk eol` asks the other question:
 
 ```sh
-bk eol -product openssl 3.2.6 3.3.7 3.4.7 3.5.8 3.6.4 4.0.2
+zbk eol -product openssl 3.2.6 3.3.7 3.4.7 3.5.8 3.6.4 4.0.2
 ```
 
 ```text
@@ -849,7 +849,7 @@ endoflife.date reports, for openssl:
 Both lines have been out of support for a while, and both say
 `isMaintained: true` — it reflects the **paid** extended support openssl sells.
 A check reading that field would report 1.1.1 as healthy, and this pantry has
-32 bottles linking it. `bk eol` reads `isEol` and the date, never
+32 bottles linking it. `zbk eol` reads `isEol` and the date, never
 `isMaintained`; the field is not decoded into the type at all, so no later
 reader can reach for it by accident. An absent date is reported as **unknown**,
 never as supported: nobody committing to a date is not the same as a date far
