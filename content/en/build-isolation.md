@@ -43,14 +43,16 @@ part", and `0` is what falls back to the runner's distribution.
 **Corrected 2026-10-27.** This page previously described Phase B as
 experimental, living on branch `feat/zpkgx-glibc-toolchain`, and gated behind
 a `BK_ZPKG_LIBC=1` environment variable. All three were out of date: the work
-is on `main`, the gate is the `--libc` flag above, and `BK_ZPKG_LIBC` appears
-nowhere in zbk's code — only inside the design note that first proposed it.
+is on `main`, the gate is the `--libc` flag above, and no such variable appears
+in zbk's code — only inside the design note that first proposed it, where the
+rename has since spelled it `ZBK_ZPKG_LIBC`. The old spelling is kept in this
+paragraph because the paragraph is about what this page used to say.
 
 ### What a sovereign toolchain does not reach {#what-a-sovereign-toolchain-does-not-reach}
 
 The sysroot, the `-isystem` directories and the runtime choice reach a build
 **through the compiler driver** — `cc`, which is zbk's own shim and re-execs
-`$BK_CC`, or `$CC`. A tool that drives the compiler some other way sees none
+`$ZBK_CC`, or `$CC`. A tool that drives the compiler some other way sees none
 of it.
 
 `bindgen` is that tool: it calls libclang in-process. A Rust crate generating

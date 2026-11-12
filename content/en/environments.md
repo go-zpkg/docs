@@ -38,9 +38,15 @@ loaded in.
 The state that makes this work lives in the environment, not in the shell, and
 is read back by `zpkgx`:
 
-- `PKGE_SPECS` — the package set currently loaded.
-- `PKGE_BASE` — the *original* value of every variable zpkgx has touched,
+- `ZPKGE_SPECS` — the package set currently loaded.
+- `ZPKGE_BASE` — the *original* value of every variable zpkgx has touched,
   base64 of NUL-separated `NAME=value` records.
+
+The names carry the `Z`. A shell function written before the rename exports the
+unprefixed pair instead, which this `zpkgx` does **not** read — it detects that
+case and names both spellings in the error, rather than treating a loaded
+environment as an empty one, because a wrong unload is worse than a refusal.
+Re-run `eval "$(zpkgs env init)"` to replace the function.
 
 A variable's base is captured once, the first time something touches it: the
 second load must not record the first load's output as the pristine value. A
