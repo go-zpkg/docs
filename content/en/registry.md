@@ -49,8 +49,8 @@ GitHub Actions workflows build each recipe with
   wasm32-wasip1 and clang's headers, as a clang resource dir) and
   `github.com/WebAssembly/wasi-libc` (the sysroot). `zbk --platform wasip1/wasm
   build` adds the three bottles and imposes `clang --target=wasm32-wasip1
-  --sysroot=… -resource-dir=… -mcpu=lime1 --rtlib=compiler-rt` through `$BK_CC` /
-  `$BK_CXX`, the stencil the cc/gcc/clang shims re-exec. Published as `wasip1/wasm`
+  --sysroot=… -resource-dir=… -mcpu=lime1 --rtlib=compiler-rt` through `$ZBK_CC` /
+  `$ZBK_CXX`, the stencil the cc/gcc/clang shims re-exec. Published as `wasip1/wasm`
   after a run under wasmtime: `zlib.net` 1.3.2 (libz.a, minigzip), `sqlite.org`
   3.53.4 (the shell) and `lua.org` 5.4.9 (errors via setjmp/longjmp, compiled to the
   standard WebAssembly exception-handling instructions — a `pcall(error)` runs under
@@ -60,7 +60,7 @@ GitHub Actions workflows build each recipe with
   paths from inside the chroot; the runner contributes three static Go binaries, the
   namespace and wasmtime. **C++**: a third source-built bottle, `libcxx.llvm.org/wasi`
   (libc++ and libc++abi, no exceptions, from wasi-sdk's `define_libcxx_sub`), named by
-  the `$BK_CXX` stencil when installed; pilot `github.com/simdjson/simdjson` 5.0.5
+  the `$ZBK_CXX` stencil when installed; pilot `github.com/simdjson/simdjson` 5.0.5
   (upstream's library plus a small minifier driver), run under wasmtime. Pilots and
   toolchain bottles are published for **linux/aarch64 hosts too** (native
   `ubuntu-24.04-arm` runner). Not yet: C++ exceptions (wasi-sdk's `DUAL` flavour,
