@@ -11,7 +11,7 @@ with no runtime dependencies of its own: one static ~9 MB binary, no libc,
 no interpreter.
 
 It is not a fork of anything. It was written from a **bibliography** — pkgx,
-Nix, Guix, Spack, Debian's `apt`, Red Hat's `rpm`, and Homebrew, Gentoo and
+Nix, Guix, Spack, Homebrew, Debian's `apt`, Red Hat's `rpm`, and Gentoo and
 Arch where their answers were sharpest; [Bibliography]({{< relref
 "filiation.md" >}}) names what each one gave. **It is not compatible with
 pkgx** and does not try to be.

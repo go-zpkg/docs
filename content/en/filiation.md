@@ -7,15 +7,31 @@ weight: 15
 
 go-zpkg is not a fork of anything. It was written from a **bibliography** —
 [pkgx](https://pkgx.sh), [Nix](https://nix.dev), [Guix](https://guix.gnu.org),
-[Spack](https://spack.readthedocs.io), Debian's `apt` and Red Hat's `rpm`,
-plus Homebrew, Gentoo and Arch where their answers were the sharpest. Each one
-was read for what it does well, and no single one of them is the parent.
+[Spack](https://spack.readthedocs.io), [Homebrew](https://docs.brew.sh),
+Debian's `apt` and Red Hat's `rpm`, plus Gentoo and Arch where their answers
+were the sharpest. Each one was read for what it does well, and no single one
+of them is the parent.
 
 pkgx is the entry people assume is a parentage, so it is the one worth stating
 plainly: this project began by reading pkgx's format and still reads its
 pantry today, which is a **dependency being wound down**, not a lineage. It is
 not compatible with pkgx and does not try to be — the
 [break](../the-break/) page lists what was dropped and why.
+
+⛔ **And one entry is readable where pkgx's is not.** `Homebrew/homebrew-core`
+is BSD-2-Clause, `NixOS/nixpkgs` is MIT, `spack/spack-packages` is
+Apache-2.0 — all three grant what `pkgxdev/pantry` does not grant at all. That
+is why a recipe of ours can *cite* them, per package, in its `provenance`
+block:
+
+```hcl
+consulted = ["homebrew-core Formula/z/zlib.rb",
+             "nixpkgs pkgs/development/libraries/zlib/default.nix",
+             "pkgsrc devel/zlib/Makefile"]
+```
+
+A bibliography is only usable if its entries can be read. That is the whole
+difference between a source and a dependency.
 
 Four things this needs are unreachable from pkgx's design rather than missing
 from its implementation, and all four are ordinary in Nix, Guix and Spack.
@@ -254,6 +270,8 @@ is also the list of what a sovereign tree still has to replace.
 | `bottle/concrete.go` | the concrete spec and its hash | Spack |
 | `bottle/storepath.go` | the store layout, with a hash where there is one | pkgx, plus Nix's reason for the hash |
 | `bottle/builds.go` | the rebuild counter `_N` | Homebrew's `rebuild`, Debian's `+bN` |
+| `bottle/oci.go` | the bottle as an **OCI artifact** rather than a tarball on a host | Homebrew's bottles, `oci.go:9` says "Homebrew-style" |
+| `provenance { consulted }` | the packaging read for reference, named per recipe | homebrew-core (BSD-2), nixpkgs (MIT), spack-packages (Apache-2.0), pkgsrc — all readable, unlike `pkgxdev/pantry` |
 | `zbk sourcepin` | the digest checked when it is RECORDED, not at every build | Guix's `guix refresh`; the mandatory fingerprint is Arch's `validpgpkeys` |
 | `PantryBase` | **the pkgx pantry, read directly — the dependency being wound down** | pkgx |
 | `ZPKG_DIST` | the distribution, defaulting to the signed registry | ours |
