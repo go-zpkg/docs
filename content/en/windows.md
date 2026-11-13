@@ -13,7 +13,7 @@ change, with a working cross-build proof, and proposes a path.
 
 Windows packages are **feasible and, for most packages, simpler than the
 linux/darwin ones**. zpkgx already ships the whole cross toolchain
-(`llvm.org/mingw-w64`). The blockers are (1) an upstream decision to build them
+(`llvm.org/mingw-w64`). The blockers are (1) a pkgxdev decision to build them
 and (2) a small runtime port of the client tools — not any deep technical wall.
 
 ## What was proven (on darwin/arm64, from this repo) {#what-was-proven-on-darwinarm64-from-this-repo}
@@ -47,7 +47,7 @@ So the package shapes are:
 
 ## The two halves of "Windows support" {#the-two-halves-of-windows-support}
 
-**(A) Producing packages** — an upstream (pkgxdev) concern. A pantry recipe would
+**(A) Producing packages** — a pkgxdev concern. A pantry recipe would
 cross-build with `llvm.org/mingw-w64` on the existing linux CI, e.g.
 
 ```yaml

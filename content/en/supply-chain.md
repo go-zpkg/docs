@@ -860,7 +860,7 @@ away.
 Signatures cover the **bytes**. The strings beside them — a project's name, its
 summary, the commands it provides, its versions and platforms — reach your
 terminal before any of that is checked, and they are written by people who are
-not you: an upstream recipe author, whoever wrote the lock you were handed,
+not you: a pantry recipe author, whoever wrote the lock you were handed,
 whatever registry `ZPKG_DIST` points at.
 
 Measured, with a crafted lock:
@@ -883,7 +883,7 @@ Three treatments, and which one applies depends on **what the field is** and
 | project name | the whole file is **refused** | a name becomes a URL and a path; a bad one means somebody wanted something |
 | summary, provides | **cleaned and shown** | cosmetic — refusing a catalogue over one paragraph would deny service for a typo |
 | version, platform **in a lock** | the whole file is **refused** | exactness is the entire point of a lock |
-| version, platform **in a catalogue** | that entry is **dropped**, the file is kept, and the count is printed | these come from an upstream recipe's `versions:`, so refusing would hand any recipe author a switch that turns off `zpkgs ls`, `search` and every `<TAB>` for everyone |
+| version, platform **in a catalogue** | that entry is **dropped**, the file is kept, and the count is printed | these come from a pantry recipe's `versions:`, so refusing would hand any recipe author a switch that turns off `zpkgs ls`, `search` and every `<TAB>` for everyone |
 | a tag from the registry | skipped | a registry is a configured endpoint |
 
 A **key** can never be cleaned the way a caption is: a cleaned key would select

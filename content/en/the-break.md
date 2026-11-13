@@ -19,7 +19,7 @@ and it is the one that makes the others unavoidable.
 ## 1. A store path keyed on the version alone {#store-path}
 
 **Inherited:** `~/.pkgx/<project>/v<version>/`, with `v1`, `v1.2` and `v*`
-aliases beside it. Upstream's own documentation: *"All packages are
+aliases beside it. pkgx's own documentation: *"All packages are
 encapsulated in individual, versioned folders in `~/.pkgx`."*
 
 **The defect.** A path keyed on the version is a function of the version
@@ -66,7 +66,7 @@ all.
 **Inherited:** `~/.pkgx`, and `~/.pkgx/config.hcl2` beside it.
 
 **The defect.** `~/.pkgx` is *pkgx's* store. Once our runtime is `zpkgx`,
-upstream's `pkgx` can be installed on the same machine and the same PATH —
+`pkgx` can be installed on the same machine and the same PATH —
 which is the entire reason for the rename. Two implementations writing one
 directory, under two layouts that are no longer even the same, is the
 collision the rename existed to remove, left in the one place it does the
@@ -74,7 +74,7 @@ most damage.
 
 **Now:** `~/.zpkg`, `~/.zpkg/config.hcl2`, and the store's own marker file is
 `.zpkg-platform`. **Nothing is migrated, on purpose**: an existing `~/.pkgx`
-is as much upstream's as ours, and nothing in it says which bottles are
+is as much pkgx's as ours, and nothing in it says which bottles are
 whose. `ZPKG_DIR=~/.pkgx` keeps using the old one for anyone who wants that.
 
 ## 3. A vendor namespace that is not ours {#namespaces}
@@ -82,7 +82,7 @@ whose. `ZPKG_DIR=~/.pkgx` keeps using the old one for anyone who wants that.
 **Inherited:** `application/vnd.pkgx.bottle.layer.v1.tar+zstd`,
 `application/vnd.pkgx.source.layer.v1`, `dev.pkgx.source.uri`.
 
-**The defect.** Checked against upstream's own corpus rather than assumed:
+**The defect.** Checked against pkgx's own corpus rather than assumed:
 pkgx distributes **plain HTTPS tarballs** from
 `dist.pkgx.dev/<pkg>/<os>/<arch>/` with `.sha256sum` and `.asc` beside them.
 It defines **no OCI registry, no artifact type and no media type at all**.
@@ -185,7 +185,7 @@ the project's own `configure` is visibly doing the right thing, while one that
 cites nothing and happens to match Debian's rules line for line is not — and
 nobody could tell them apart without the field.
 
-**Two gates enforce it**, both per tree, because an upstream recipe has no
+**Two gates enforce it**, both per tree, because a pantry recipe has no
 reason to carry any of this:
 
 - `zbk lint --require-provenance` fails a recipe of ours that records no

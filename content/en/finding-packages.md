@@ -107,7 +107,7 @@ after it fails.
 What is behind the mark: the factory asks the registry, per project, which
 versions it carries and whether this platform is among them. Two things it
 deliberately does **not** do. It does not borrow: a version list that fell
-back to the upstream `dist.pkgx.dev` is dropped, because "available" is a
+back to `dist.pkgx.dev` is dropped, because "available" is a
 claim about **one** registry and a list from another one answers a
 different question. And it does not assume: a tag listing spans every
 architecture, so a mirror wave that lands x86-64 publishes a tag s390x
