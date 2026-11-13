@@ -119,22 +119,22 @@ Absent means **0**, which is Debian's rule for its own revision and, until
 this was minted, the literal state of the registry: 0 of 1371 published
 version strings carried one.
 
-### ⛔ Upstream zpkgx cannot read it {#upstream-zpkgx-cannot-read-it}
+### ⛔ pkgx cannot read it {#pkgx-cannot-read-it}
 
 libpkgx's `SemVer` constructor (`src/utils/semver.ts:26-41`, read
 2026-11-02) splits a version on `.` and accepts a part only if it matches
 `/^(\d+)([a-z])$/` — last part only — or `/^\d+$/`; anything else throws
 `invalid version`. `3.3.11_1` has the part `11_1`, which matches neither.
 
-**Pointing an upstream zpkgx client at this registry is therefore unsupported
+**Pointing a pkgx client at this registry is therefore unsupported
 once a project carries a rebuild.** That was weighed rather than overlooked:
 it throws rather than resolving the wrong bottle, which is the better of the
 two failures. `zpkgx`, `zpkgs` and `zpkgm` from this org read `_N` correctly.
 
 The alternatives were rejected for reasons worth knowing if you are tempted
-by them. A fourth numeric component (`3.3.11.1`) parses upstream but cannot
+by them. A fourth numeric component (`3.3.11.1`) parses in pkgx but cannot
 be told apart from a genuine four-component release such as ghc `5.64.3.2`. A
-letter suffix (`3.3.11a`) parses upstream but caps at 26 and occupies the
+letter suffix (`3.3.11a`) parses in pkgx but caps at 26 and occupies the
 slot real versions use — openssl ships `1.1.1w`. Build metadata (`3.3.11+neon`)
 cannot be a tag at all: the OCI distribution spec requires
 `[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}`, and semver itself says build metadata
@@ -183,7 +183,7 @@ message.
 
 ### Except what was mirrored {#except-what-was-mirrored}
 
-Not every package here was built here. Where a bottle already exists upstream
+Not every package here was built here. Where a bottle already exists elsewhere
 and rebuilding it would buy nothing, the factory **copies** it and republishes
 it with our own signature, SBOM and provenance. Those attestations are ours and
 mean what they say: this is the artefact we published, and this is where it came
@@ -192,7 +192,7 @@ from.
 What they do **not** mean is that the normalisation above was applied. A
 mirrored bottle is republished byte-for-byte; nothing unpacks it, so nothing
 rewrites its install names and no guard refuses it. It carries whatever the
-upstream build produced — including, in at least one published case, a RUNPATH
+original build produced — including, in at least one published case, a RUNPATH
 naming absolute paths under `/opt` that exist on nobody's machine.
 
 You can tell which is which by looking:
@@ -200,13 +200,13 @@ You can tell which is which by looking:
 | | linux `DT_RUNPATH` | macOS `LC_RPATH` |
 | --- | --- | --- |
 | built here | `$ORIGIN`-relative | several `@loader_path/..` depths **and** the builder's absolute path |
-| mirrored | whatever upstream wrote | one `@loader_path` entry, or an absolute path |
+| mirrored | whatever the original build wrote | one `@loader_path` entry, or an absolute path |
 
 
 ## Trees the pantry does not have {#trees-the-pantry-does-not-have}
 
-Most of the catalog is a pantry recipe built here. These are projects
-upstream does not carry at all — the HPC and GPU floor an MPI actually needs,
+Most of the catalog is a pantry recipe built here. These are projects the
+pantry does not carry at all — the HPC and GPU floor an MPI actually needs,
 which the pantry stops just above:
 
 | project | | |

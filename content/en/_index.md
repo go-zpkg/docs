@@ -34,16 +34,16 @@ The `z` is ZFS's: the last one you need.
 The last two ship from one repository and share one resolver. They are
 separate commands because of a grammar, not a preference.
 
-Upstream zpkgx has no verbs at all: the first argument that is not a flag is
-a **package**, and zpkgx runs it. This implementation had added nine verbs in
+The grammar has no verbs: the first argument that is not a flag is
+a **package**, and `zpkgx` runs it. Nine verbs had been added in
 that position, and each took a name away from the registry. Two took names
 that exist — measured against the published linux/x86-64 catalogue on
 2026-10-18, **`gnu.org/coreutils` provides both `ls` and `env`** — so `zpkgx
-ls` listed a catalogue where upstream runs GNU ls, and there was no way to
+ls` listed a catalogue instead of running GNU ls, and there was no way to
 ask for the other one.
 
 ```console
-$ zpkgx ls --version          # GNU coreutils, as upstream does
+$ zpkgx ls --version          # GNU coreutils: the first word is a package
 ls (GNU coreutils) 9.11
 $ zpkgs ls gnu.org            # what is available under a node
 $ zpkgx -Q ls                 # which project provides a command
@@ -53,8 +53,8 @@ gnu.org/coreutils
 A reserved word could not have fixed it: `vercel.com/pkg` provides the
 command `pkg`, and any bare word can become a package tomorrow, because the
 point of the first position is that the **registry** decides what is in it.
-Only a token the grammar already reserves is safe — a flag, which is what
-upstream chose for `zpkgx -Q`, or a different binary.
+Only a token the grammar already reserves is safe — a flag, `zpkgx -Q`, or a
+different binary.
 
 ## Install {#install}
 

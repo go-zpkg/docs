@@ -23,7 +23,7 @@ assumption an HPC site cannot make.
 
 ## 1. A package specification with no room for build options {#no-variants}
 
-Upstream's own corpus — `docs.pkgx.sh/llms-full.txt`, read 2026-11-04 —
+pkgx's own corpus — `docs.pkgx.sh/llms-full.txt`, read 2026-11-04 —
 describes a grammar of **a name and a version constraint**, and nothing else:
 
 ```
@@ -69,7 +69,7 @@ a version range (`~5.44` is `>=5.44 <5.45`); in Spack it disables a variant
 
 ## 2. A store path that cannot hold two builds of one version {#one-build-per-version}
 
-The same upstream page states the layout plainly:
+The same pkgx page states the layout plainly:
 `~/.pkgx/<fully-qualified-name>/v<version>/`, with `v*`, `v1` and `v1.2`
 symlinks beside it. Deno 1.2.3 is at `~/.pkgx/deno.land/v1.2.3`.
 
@@ -139,7 +139,7 @@ Mirrored bottles are distinguishable from built ones by their provenance:
 ours carries `externalParameters` and a versioned builder id, a mirror's
 carries `{}` and an unversioned one.
 
-Upstream remains reachable, as a **choice** rather than a default:
+pkgx remains reachable, as a **choice** rather than a default:
 `ZPKG_DIST=https://dist.pkgx.dev` with `ZPKG_VERIFY=0`, which is the honest
 pairing — unsigned distribution, verification off, said out loud.
 
@@ -152,17 +152,17 @@ goes through them one at a time. The largest:
 The shared store. go-zpkg installs into `~/.zpkg`, not `~/.pkgx`.
 Two reasons, and the second is the stronger: a hash in the path is not
 something pkgx can read, so the trees could not stay interchangeable anyway —
-and `~/.pkgx` is *pkgx's* directory, which upstream can be installed into on
+and `~/.pkgx` is *pkgx's* directory, which pkgx can be installed into on
 the same machine. Sharing it was the collision the rename existed to remove,
 left in the one place it does the most damage. Nothing is migrated: an
-existing `~/.pkgx` is as much upstream's as ours, and `ZPKG_DIR=~/.pkgx` keeps
+existing `~/.pkgx` is as much pkgx's as ours, and `ZPKG_DIR=~/.pkgx` keeps
 using it for anyone who wants that.
 
 **Kept:** the pantry, the bottle format, the dependency grammar, the
-relocatable prefix, and the ability to resynchronise with upstream when recipes
-are added. Upstream's recipes are converted to HCL2 rather than forked, so a
-periodic resync stays possible, and an improvement made here can be proposed
-back.
+relocatable prefix, and the ability to re-read the pantry when recipes are
+added. The pantry's recipes are converted to HCL2 rather than forked, so
+re-reading it stays possible, and a fix made here can still be offered to the
+pkgx maintainers.
 
 **Not claimed:** go-zpkg does not have Nix's or Guix's functional purity. But
 "not sandboxed" and "no time machine" are both vaguer than the code deserves,
@@ -226,5 +226,5 @@ true, and it is the next thing to build.
 | `bottle/pkgx.go` | pkgx's version grammar, constraints and bottle protocol |
 | `bottle/concrete.go` | the concrete spec and its hash — Spack's idea |
 | `bottle/storepath.go` | the store layout: pkgx's, with a hash where there is one |
-| `PantryBase` | upstream's pantry, read directly |
+| `PantryBase` | the pkgx pantry, read directly |
 | `ZPKG_DIST` | the distribution, defaulting to the signed registry |
