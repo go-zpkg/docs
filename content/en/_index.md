@@ -10,10 +10,18 @@ static binary that installs **and runs** packages on a `FROM scratch` image,
 with no runtime dependencies of its own: one static ~9 MB binary, no libc,
 no interpreter.
 
-It descends from pkgx — see [Filiation]({{< relref "filiation.md" >}}) for
-what was taken and what was rewritten — but **it is no longer compatible with
-it**, and no longer tries to be: the pantry, the recipe format and the
-distribution are ours.
+It is not a fork of anything. It was written from a **bibliography** — pkgx,
+Nix, Guix, Spack, Debian's `apt`, Red Hat's `rpm`, and Homebrew, Gentoo and
+Arch where their answers were sharpest; [Bibliography]({{< relref
+"filiation.md" >}}) names what each one gave. **It is not compatible with
+pkgx** and does not try to be.
+
+The recipe format and the distribution are ours: `package.hcl` with its own
+schema, and a signed registry. ⛔ The **pantry is not yet**: `PantryBase`
+still reads `pkgxdev/pantry` at resolve time with our recipes merged over it,
+which is a dependency being wound down — the sovereign pantry is written, not
+converted, because that corpus carries no licence to convert
+(go-zpkg/packages#431, #440).
 
 Four things it does, all four ordinary in Nix, Guix and Spack: build options
 on a specification, two builds of one version in one store, a hashed identity
