@@ -51,53 +51,53 @@ from nothing, that is the only question that matters.
 
 Bringing one up needs two registries. The first generation takes its compiler
 and shell from the host distribution, because on an architecture with no
-bottles there is nothing else to take them from, so it publishes to a
+artifacts there is nothing else to take them from, so it publishes to a
 **throwaway** registry on the runner and never leaves it. Getting anything out
-of there needs one fact per bottle: *was the host's toolchain involved?*
+of there needs one fact per artifact: *was the host's toolchain involved?*
 
 Measured on 2026-11-01, the registry could not answer:
 
 ```console
-$ zbk buildenv --platform linux/s390x lz4.org 1.10.0
+$ zpkb buildenv --platform linux/s390x lz4.org 1.10.0
 buildenv: lz4.org 1.10.0 (linux/s390x): the provenance records no build environment
 ```
 
 ⛔ **An empty build environment is a hint, not a statement.** A bootstrap build
-resolves no bottles, so its environment is empty — but so is a mirrored
-bottle's, and so is every bottle published by an older `zbk`. Three situations,
+resolves no artifacts, so its environment is empty — but so is a mirrored
+artifact's, and so is every artifact published by an older `zpkb`. Three situations,
 one silence, and a gate cannot read a silence.
 
-So the factory records the verdict, and `zbk origin` reads it back:
+So the factory records the verdict, and `zpkb origin` reads it back:
 
 ```console
-$ zbk origin --platform linux/s390x lz4.org 1.10.0
+$ zpkb origin --platform linux/s390x lz4.org 1.10.0
 lz4.org 1.10.0 linux/s390x
-  host toolchain used: no — built from bottles
+  host toolchain used: no — built from artifacts
   inputs resolved from: oci://ghcr.io/go-pkgx/packages
 ```
 
 `inputs-from` is the second fact, and it is the one no digest or signature can
-show: it distinguishes a bottle built against a seed's loopback registry from
+show: it distinguishes an artifact built against a seed's loopback registry from
 one built against the production one.
 
 ### A gate whose default answer is no {#a-gate-whose-default-answer-is-no}
 
-`zbk origin --promotable` is silent and exits 0 **only** when the provenance
-proves the host toolchain was unused. `zbk factory --mirror-from …
---require-origin` applies the same rule to every bottle it would copy, and
+`zpkb origin --promotable` is silent and exits 0 **only** when the provenance
+proves the host toolchain was unused. `zpkb factory --mirror-from …
+--require-origin` applies the same rule to every artifact it would copy, and
 refuses the rest:
 
 ```console
 ❌ FAIL lz4.org 1.10.0: origin: not promotable: it was built with --bootstrap,
-   so its compiler and shell came from the host distribution rather than from bottles
+   so its compiler and shell came from the host distribution rather than from artifacts
 ```
 
 ⛔ **It requires an explicit `0` and treats every other answer as no**, silence
 included. The recorded value is a tri-state rather than a boolean for exactly
 that reason: a boolean's zero is `false`, which reads as "not a bootstrap", so
-every bottle published before this existed would have claimed to be promotable.
+every artifact published before this existed would have claimed to be promotable.
 
-The asymmetry is the whole argument. Refusing a good bottle costs a rebuild.
+The asymmetry is the whole argument. Refusing a good artifact costs a rebuild.
 Promoting a host-built one puts an unpinned distribution compiler's output into
 the production registry **under our signature**. The default answer to "may
 I?" is no.
@@ -105,17 +105,17 @@ I?" is no.
 Three further properties, each a way this could have been built wrong:
 
 - The check runs **before** the download — nothing about having the tarball in
-  hand makes a bottle more promotable.
+  hand makes an artifact more promotable.
 - The verdict is **carried, not restated**. The facts belong to the build, and
   copying an artefact between registries does not change what built it;
   restating them would launder a verdict the copying run did not make, and
   would overwrite `inputs-from`.
 - **"I could not ask" is not "the answer was no."** An unreachable source
   registry is reported as a read failure naming the registry, never as a
-  judgement about the bottle — a gate that folds the two together turns every
+  judgement about the artifact — a gate that folds the two together turns every
   network blip into a permanent verdict.
 
-A bottle published before `zbk` v0.47.0 records no origin and therefore reads as
+An artifact published before `zpkb` v0.47.0 records no origin and therefore reads as
 **not promotable**. That is the intended answer rather than a regression:
 nothing is promoted that cannot be vouched for.
 
@@ -137,7 +137,7 @@ out of **1932** recipes. A fourth `sig:` sits in
 — so it is in the tree and not in the pantry.
 
 ⛔ The projects are named because the earlier figure was quoted for a month and
-one half of it was wrong: this page and go-zpkg/zbk#282 both said `openssl.org`
+one half of it was wrong: this page and go-zpkg/zpkb#282 both said `openssl.org`
 was the **only** recipe naming a `sig:`, and there are three. A count nobody can
 follow back to a name is a count nobody can refute, including its author.
 
@@ -179,14 +179,14 @@ tags, so the first pass records and only the second enforces.
 
 `sig:` is the only control in the recipe format a compromised host could not
 forge — the signing key is not on `www.openssl.org`. Nothing read it until
-`zbk` v0.73.0, and the question that held it up was never the cryptography. It
+`zpkb` v0.73.0, and the question that held it up was never the cryptography. It
 was **whose key, pinned where**: a verifier that accepts any key proves only
 that somebody signed something.
 
-`zbk sourcepin --sig` answers it, and **where** it answers is the design:
+`zpkb sourcepin --sig` answers it, and **where** it answers is the design:
 
 ```
-zbk sourcepin --sig auto --key upstream.asc \
+zpkb sourcepin --sig auto --key upstream.asc \
   --key-source "https://upstream.example/keys, fetched 2026-11-08" \
   --version 5.8.4 https://upstream.example/xz-5.8.4.tar.gz
 ```
@@ -279,7 +279,7 @@ documentation is silent on them:
 The digest was then confirmed by a second, independent fetch-and-hash. That is
 not belt-and-braces for its own sake: this builder has a recorded incident of
 `curl` writing a 504 error page and `shasum` hashing it into a perfectly
-plausible digest, which is why `zbk sourcepin` exists at all.
+plausible digest, which is why `zpkb sourcepin` exists at all.
 
 ## The trust set {#the-trust-set}
 
@@ -310,7 +310,7 @@ binary cache already knows it.
 
 Trust in a supply chain is not a property of a registry; it is what each
 artefact can be made to answer about itself, to someone who has only the
-artefact. Every bottle carries, as OCI referrers travelling with its digest:
+artefact. Every artifact carries, as OCI referrers travelling with its digest:
 
 | | |
 | --- | --- |
@@ -322,7 +322,7 @@ artefact. Every bottle carries, as OCI referrers travelling with its digest:
 Read straight off the registry, no download:
 
 ```console
-$ zbk attest --platform linux/x86-64 lz4.org 1.10.0
+$ zpkb attest --platform linux/x86-64 lz4.org 1.10.0
 lz4.org 1.10.0 linux/x86-64: 3 referrer(s)
   application/vnd.cyclonedx+json        pkg:pkgx/lz4.org@1.10.0
   …cosign.artifact.sig.v1+json          signed
@@ -369,21 +369,21 @@ factory that made what is already there:
 
 ```
 ⏭  SKIP fftw.org 3.3.11-h27o3… (linux/x86-64) — already published
-   ⚠ it was built by …/bk@v0.26.0, and this is …/zbk@v0.64.0 — `force` to rebuild it
+   ⚠ it was built by …/bk@v0.26.0, and this is …/zpkb@v0.64.0 — `force` to rebuild it
 ```
 
 It does not rebuild on its own: that would spend the fleet's whole build
 capacity on every release of the build tool, for a change that usually alters
 no output. It turns an invisible skip into a fact somebody can act on.
 
-## Two builders, one bottle {#two-builders-one-bottle}
+## Two builders, one artifact {#two-builders-one-artifact}
 
-Two people who build the same inputs get the **same** bottle, hash and all.
+Two people who build the same inputs get the **same** artifact, hash and all.
 That is deliberate: an identity that varied with the builder could never be
 compared, and the collision is precisely the evidence. So you do not tell two
 builders apart by the artefact — you tell them apart by **who signed it**.
 
-The registry holds one bottle and, potentially, several signature referrers
+The registry holds one artifact and, potentially, several signature referrers
 over it. A threshold of 2 means *I install nothing that a second builder did
 not independently reproduce*.
 
@@ -398,14 +398,14 @@ authorised signature on a narinfo and compares servers out of band with
 `guix challenge`. A threshold makes that comparison a **precondition of
 installing** instead of an audit somebody runs afterwards.
 
-The rebuilder's side is two commands in `zbk`:
+The rebuilder's side is two commands in `zpkb`:
 
 ```
-$ zbk reproduce yours.tar.gz theirs.tar.gz    # do they agree, and how not?
-$ zbk sign -key you.sec -project fftw.org -version 3.3.11-h27o3… yours.tar.gz
+$ zpkb reproduce yours.tar.gz theirs.tar.gz    # do they agree, and how not?
+$ zpkb sign -key you.sec -project fftw.org -version 3.3.11-h27o3… yours.tar.gz
 ```
 
-`zbk sign` pushes **no bottle** — re-publishing to add a signature is how you
+`zpkb sign` pushes **no artifact** — re-publishing to add a signature is how you
 end up with two objects where the point was that there is one — and it
 **refuses when the digests differ**, printing both. That divergence is the
 finding: either the recipe is not reproducible, or one of the two machines is
@@ -416,7 +416,7 @@ quietly useless:
 
 - A signature from **outside** the trust set is counted and ignored, never an
   error. Anybody may sign a public artefact; if a stranger's signature
-  invalidated a bottle, invalidating any bottle would cost one push.
+  invalidated an artifact, invalidating any artifact would cost one push.
 - A **malformed** signature referrer is counted, not skipped. *Unsigned* and
   *signed, but the referrer is broken* are different facts, and the second
   names a publishing bug.
@@ -444,14 +444,14 @@ That matters more than it sounds: rotation is the answer to a lost or
 compromised key, so a design in which rotating invalidates the registry is
 one in which **nobody rotates**.
 
-A retired key is also **not discounted**. A bottle signed by the current key
+A retired key is also **not discounted**. An artifact signed by the current key
 and a retired one counts as *two* — exactly right during an overlap, where
 the publisher deliberately signs with both. Ranking retired keys lower would
 make a threshold of 2 unmeetable precisely while rotating.
 
 **Revoking** says somebody else may hold the key. Nothing it signed can be
 told apart from a forgery, so its signatures count for nothing — *including*
-on bottles it signed legitimately before the compromise. The remedy is to
+on artifacts it signed legitimately before the compromise. The remedy is to
 rebuild, which is expensive, which is why it is a separate and louder act.
 
 ### ⛔ Why "before the compromise" is not a thing we can check {#why-before-is-not-checkable}
@@ -461,7 +461,7 @@ worth stating because it generalises: **whoever holds the key writes that
 field too**, and backdates it. Self-asserted metadata is forgeable by exactly
 the party it is meant to expose.
 
-Nor can the bottle help. Every published bottle carries the same *pinned*
+Nor can the artifact help. Every published artifact carries the same *pinned*
 timestamp — that is what makes a re-publish byte-identical — so the artefact
 has no time on it to read.
 
@@ -478,13 +478,13 @@ auditors can confirm "remains append-only and entries are never mutated or
 removed".
 
 Whether to take on that dependency is open:
-[bottle#215](https://github.com/go-zpkg/bottle/issues/215). Until it is
+[artifact#215](https://github.com/go-zpkg/artifact/issues/215). Until it is
 settled, a revoked key voids everything it signed, which is the safe reading
 and the expensive one.
 
 A revoked signature is reported **as itself**, never folded into "signed by
 an untrusted key". A stranger's signature on a public artefact is noise
-anybody can make; *your own revoked key* on a bottle is a fact about your
+anybody can make; *your own revoked key* on an artifact is a fact about your
 supply chain that you have to act on. Every revocation carries a reason,
 because a revocation without one is a rumour.
 
@@ -499,8 +499,8 @@ sends the reader hunting for a corrupted paste.
 | | |
 | --- | --- |
 | **the secret key** | lives wherever this table says it lives. If this row is still a placeholder, that is the defect |
-| **in CI** | `BOTTLE_SIGNING_KEY`, an organisation secret of `go-zpkg`, scoped to the `packages` repository |
-| **the public half** | `bottle.SigningPublicKey`, compiled into every released client |
+| **in CI** | `ARTIFACT_SIGNING_KEY`, an organisation secret of `go-zpkg`, scoped to the `packages` repository |
+| **the public half** | `artifact.SigningPublicKey`, compiled into every released client |
 
 A GitHub secret **cannot be read back**, ever. It is a write-only copy, not a
 backup — so a key that exists only there is a key you will lose.
@@ -519,10 +519,10 @@ both hold one base64 line:
    password manager **first**. The CI secret is a copy, never the original.
 2. Move the old entry from `SigningPublicKey` into
    `RetiredSigningPublicKeys` as `name:key`, and put the new public key in
-   `SigningPublicKey`. Release `bottle`; the clients pick it up on their next
+   `SigningPublicKey`. Release `artifact`; the clients pick it up on their next
    release.
-3. Set `BOTTLE_SIGNING_KEY` to the new **secret** key.
-4. Publish one bottle and read it back from another machine — `zpkgs builds
+3. Set `ARTIFACT_SIGNING_KEY` to the new **secret** key.
+4. Publish one artifact and read it back from another machine — `zpkgs builds
    <project>@<version>` must show it signed by the new name.
 
 Nothing already published needs re-signing: the old key stays trusted
@@ -532,10 +532,10 @@ rebuilt — see above for why no date can spare you that.
 
 ## Verify on install {#verify-on-install}
 
-The [`go-zpkg/bottle`](https://github.com/go-zpkg/bottle) backend that both `zpkgx`
+The [`go-zpkg/artifact`](https://github.com/go-zpkg/artifact) backend that both `zpkgx`
 and `zpkgm` import performs verification at install time:
 
-- every signature referrer on the bottle is collected, and the distinct trusted
+- every signature referrer on the artifact is collected, and the distinct trusted
   keys among them are counted against the threshold;
 - **`ZPKG_VERIFY`** is on by default and **fail-closed**: a package with no
   signature, or too few that verify, is **refused** rather than installed.
@@ -567,7 +567,7 @@ of them fixed long before anything we ship. Ask at the version the published
 catalogue says we carry, and skip outright the identities a platform carries no
 version of (2026-10-20):
 
-| platform | asked at version | unanswerable by OSV | not asked (no bottle) | findings |
+| platform | asked at version | unanswerable by OSV | not asked (no artifact) | findings |
 | --- | --- | --- | --- | --- |
 | linux/x86-64 | 133 | 1089 | 451 | 0 |
 | linux/aarch64 | 132 | 1104 | 437 | 0 |
@@ -584,7 +584,7 @@ not keyed on: a repository or a CPE rather than a package in an ecosystem.
 
 The platform list was **written into the workflow**, and it named `linux/x86-64`
 and `darwin/aarch64` while the registry published six — `linux/aarch64` among
-them, the largest here by bottle count. All four of the missing ones were
+them, the largest here by artifact count. All four of the missing ones were
 clean, so the cost was **coverage, not exposure**; but an enumeration copied
 into a file freezes while the population grows.
 
@@ -618,7 +618,7 @@ decision stays a pull request, by a person.
 ### What a decision looks like, and how far it reaches {#what-a-decision-looks-like-and-how-far-it-reaches}
 
 A decision is a dated event in `advisories/<project>/advisories.yaml`, and
-`zbk publish --advisories` attaches it to the bottle as an **OpenVEX v0.2.0**
+`zpkb publish --advisories` attaches it to the artifact as an **OpenVEX v0.2.0**
 document, signed with everything else.
 
 ```yaml
@@ -639,8 +639,8 @@ two statuses that tell a reader to stop looking, `not_affected` and `fixed`,
 about a version no event in the record names:
 
 ```
-record determines not_affected for 1.22.1, bottle is 1.22.1   → not_affected + justification
-record determines not_affected for 1.22.1, bottle is 2026.9.1 → under_investigation + status_notes
+record determines not_affected for 1.22.1, artifact is 1.22.1   → not_affected + justification
+record determines not_affected for 1.22.1, artifact is 2026.9.1 → under_investigation + status_notes
 record names no version at all                                → under_investigation + status_notes
 ```
 
@@ -659,9 +659,9 @@ ourselves; when in doubt do not reassure somebody else.*
 
 ### ⛔ All of the above is keyed on a DECLARED dependency {#all-of-the-above-is-keyed-on-a-declared-dependency}
 
-Every number on this page is reached through the dependency graph. A bottle
+Every number on this page is reached through the dependency graph. An artifact
 declares `openssl.org ^3`, the sweep asks OSV about the openssl version the
-catalogue says we carry, and a fix lands by rebuilding the openssl bottle. The
+catalogue says we carry, and a fix lands by rebuilding the openssl artifact. The
 whole mechanism rests on one assumption nothing was checking: that a declared
 dependency is the copy the artefact actually uses.
 
@@ -671,19 +671,19 @@ libssl at all**. A rebuild linked openssl 3.6.4 statically into the library —
 `DT_NEEDED`.
 
 A broken reference is **visible**: an unresolvable soname is something a sweep
-counts and `zbk unresolved` reports. A vendored copy is **invisible**. The
+counts and `zpkb unresolved` reports. A vendored copy is **invisible**. The
 manifest still reads `openssl.org ^3`, so the scan asks about the right project
-at the right version and gets a true answer about a copy the bottle does not
-load. When openssl ships a fix, updating the openssl bottle does not change the
-bottle that embedded it, and its own version does not move either. There is
+at the right version and gets a true answer about a copy the artifact does not
+load. When openssl ships a fix, updating the openssl artifact does not change the
+artifact that embedded it, and its own version does not move either. There is
 nothing to compare.
 
-`zbk unlinked` asks the question backwards — which projects does a bottle
+`zpkb unlinked` asks the question backwards — which projects does an artifact
 *declare* and never link?
 
 ```sh
-zbk unlinked --platform linux/x86-64 rpm.org/rpm-sequoia
-zbk unlinked --fail --platform linux/x86-64 < recipes.txt   # as a gate
+zpkb unlinked --platform linux/x86-64 rpm.org/rpm-sequoia
+zpkb unlinked --fail --platform linux/x86-64 < recipes.txt   # as a gate
 ```
 
 ```
@@ -694,7 +694,7 @@ loader_attic.so, padlock.so, and links none of them
 
 `--platform` matters more here than anywhere else on this page: the one
 confirmed case is published for linux and not for darwin, so a host-only
-command could not look at the very bottle the check was written for.
+command could not look at the very artifact the check was written for.
 
 A finding is a **candidate**, and the output says so. Two different defects
 leave the same trace — a vendored copy, and an edge that is simply no longer
@@ -710,11 +710,11 @@ set like `curl.se/ca-certs`, an interpreter.
 That last rule is a heuristic, and it has a floor worth stating before you read
 a list rather than after.
 
-**A program dependency whose bottle also ships a library is reported, and
+**A program dependency whose artifact also ships a library is reported, and
 should not be.** `gnome.org/glib` declares `python.org`, and its recipe says
 why — *"several of the bins are scripts"*. Nothing links `libpython`, but
-python's bottle ships one, so the silence rule does not fire. The same happens
-for `gnu.org/coreutils`, whose bottle contains exactly one `.so`
+python's artifact ships one, so the silence rule does not fire. The same happens
+for `gnu.org/coreutils`, whose artifact contains exactly one `.so`
 (`libstdbuf.so`, an `LD_PRELOAD` helper nobody links). Read those as
 **declared for a program**, not as defects.
 
@@ -733,7 +733,7 @@ is the one case where a finding can be both correct and uninteresting.
 A short history is worth keeping beside the output, because it bears on how
 much a clean run is worth. The first sweep of a pantry with this command
 produced findings that measured the command: a soname was attributed to one
-owner when two projects shipped a file of that name (fixed in `zbk` v0.44.1),
+owner when two projects shipped a file of that name (fixed in `zpkb` v0.44.1),
 and a real `libfolly.so.0.58.0-dev` was refused for its non-numeric version
 suffix while a `libstdc++.so.6.0.33-gdb.py` had earlier been counted as a
 library (v0.44.2: the name is a prefilter, the magic number decides). Both were
@@ -747,10 +747,10 @@ Everything above asks *what is known to be wrong with this version*. A release
 line upstream has abandoned has nothing known about it **yet** — and never
 will, because nobody is looking and no fix is coming. So the daily sweep
 returns a clean zero for a package whose upstream stopped issuing fixes years
-ago. `zbk eol` asks the other question:
+ago. `zpkb eol` asks the other question:
 
 ```sh
-zbk eol -product openssl 3.2.6 3.3.7 3.4.7 3.5.8 3.6.4 4.0.2
+zpkb eol -product openssl 3.2.6 3.3.7 3.4.7 3.5.8 3.6.4 4.0.2
 ```
 
 ```text
@@ -831,11 +831,11 @@ fall back to the built-in one: naming a file is a statement about what you
 want, and substituting something else would hide the mistake behind behaviour
 that looks like it worked.
 
-The build side is not there yet. `zbk` resolves build-time dependencies through
+The build side is not there yet. `zpkb` resolves build-time dependencies through
 the same resolver and does not carry the list, so the factory still builds
-against 3.6.4 what zpkgx now runs against 3.5.8 (go-zpkg/zbk#378). The list also
+against 3.6.4 what zpkgx now runs against 3.5.8 (go-zpkg/zpkb#378). The list also
 still lives in the binary rather than in the signed catalogue, where it would
-be computed instead of committed (go-zpkg/bottle#179).
+be computed instead of committed (go-zpkg/artifact#179).
 
 ### The field that would have inverted the verdict {#the-field-that-lies}
 
@@ -849,7 +849,7 @@ endoflife.date reports, for openssl:
 Both lines have been out of support for a while, and both say
 `isMaintained: true` — it reflects the **paid** extended support openssl sells.
 A check reading that field would report 1.1.1 as healthy, and this pantry has
-32 bottles linking it. `zbk eol` reads `isEol` and the date, never
+32 artifacts linking it. `zpkb eol` reads `isEol` and the date, never
 `isMaintained`; the field is not decoded into the type at all, so no later
 reader can reach for it by accident. An absent date is reported as **unknown**,
 never as supported: nobody committing to a date is not the same as a date far

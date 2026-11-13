@@ -27,7 +27,7 @@ alone, so two builds of one version have one address. Installing the second
 met the first and the installer refused:
 
 ```
-already holds other content … the bottle carries v3.3.11
+already holds other content … the artifact carries v3.3.11
 ```
 
 That refusal is correct behaviour on a wrong layout. `+cuda` and `~cuda` are
@@ -46,7 +46,7 @@ recipe, and the resolved prefix of every dependency. Two builds of one
 version are two directories, and each says which it is.
 
 **What survives, and why.** `v<version>` remains **as a symlink**, because it
-is in the published binaries. Read out of a real bottle:
+is in the published binaries. Read out of a real artifact:
 
 ```console
 $ otool -l …/zlib.net/v1.3.2/lib/libz.1.3.2.dylib
@@ -57,7 +57,7 @@ Every binary that links zlib names that path. A store without it breaks all
 of them at load time, far from the cause. The hash goes on the real
 directory; the published path keeps resolving.
 
-That seam closes when the registry is rebuilt: a bottle built with a hashed
+That seam closes when the registry is rebuilt: an artifact built with a hashed
 prefix carries the hash in its own `@rpath` references, and needs no alias at
 all.
 
@@ -74,7 +74,7 @@ most damage.
 
 **Now:** `~/.zpkg`, `~/.zpkg/config.hcl2`, and the store's own marker file is
 `.zpkg-platform`. **Nothing is migrated, on purpose**: an existing `~/.pkgx`
-is as much pkgx's as ours, and nothing in it says which bottles are
+is as much pkgx's as ours, and nothing in it says which artifacts are
 whose. `ZPKG_DIR=~/.pkgx` keeps using the old one for anyone who wants that.
 
 ## 3. A vendor namespace that is not ours {#namespaces}
@@ -103,13 +103,28 @@ rather than fixing it.
 demonstrably answers, which is the convention OCI itself uses
 (`org.opencontainers.image.*`) applied honestly.
 
+**And the noun changed too, which makes two retired generations.** A built
+package is an **artifact**, not a *bottle* — that was pkgx's word, and
+Homebrew's before it. So three spellings exist in the wild, and a reader of an
+old manifest will meet all three:
+
+| | |
+|---|---|
+| `vnd.pkgx.bottle.layer.v1.*` | a vendor namespace that was never ours |
+| `vnd.go-zpkg.bottle.layer.v1.*` | ours, carrying pkgx's word |
+| `vnd.go-zpkg.artifact.layer.v1.*` | what is written now |
+
+Nothing published becomes unreadable: the reader matches the **codec suffix**
+(`tar+gzip`, `tar+xz`, `tar+zstd`) and never the vendor part or the noun, so
+all three resolve without a compatibility shim. The rename is write-side only.
+
 **Read compatibility is asymmetric, and deliberately so.** Layers are matched
 by their codec suffix (`tar+zstd`), never by the whole string, so both
 spellings read without the reader being told about either. Annotations are
 matched by exact key, so the older spellings are still read — including the
 intermediate `org.go-zpkg.*`, which shipped in five releases. The failure
 mode is why: a missed annotation key does not raise an error, it quietly
-concludes the bottle has no glibc flavour, no declared sonames and no
+concludes the artifact has no glibc flavour, no declared sonames and no
 recorded spec.
 
 ## 4. A distribution that cannot be verified {#verification}
@@ -121,12 +136,12 @@ the bytes came from that host today, not that a particular build produced
 them.
 
 **Now:** an OCI registry with a Sigstore signature and an SLSA provenance
-statement per bottle, and verification **on by default** — a bottle that
+statement per artifact, and verification **on by default** — an artifact that
 cannot be verified is not installed, rather than installed with a warning.
 
 A second distribution can still be named, with `ZPKG_UPSTREAM_DIST`, and it is
 **empty by default**: a project we do not carry says so rather than resolving
-to somebody else's bottle. This page used to name `https://dist.pkgx.dev` here
+to somebody else's artifact. This page used to name `https://dist.pkgx.dev` here
 as the thing to point it at, paired with `ZPKG_VERIFY=0`. That pairing is
 gone. It was reasonable while this was a mirror with a gap-filler; it is wrong
 now that the two are no longer compatible (see §5), and telling someone to
@@ -188,9 +203,9 @@ nobody could tell them apart without the field.
 **Two gates enforce it**, both per tree, because a pantry recipe has no
 reason to carry any of this:
 
-- `zbk lint --require-provenance` fails a recipe of ours that records no
+- `zpkb lint --require-provenance` fails a recipe of ours that records no
   provenance.
-- `zbk lint --require-standalone` fails a recipe that cannot resolve **alone**
+- `zpkb lint --require-standalone` fails a recipe that cannot resolve **alone**
   — one that needs another recipe merged underneath it. That is the question
   that decides whether a tree can be a pantry at all, and the answer today is
   uncomfortable: of 228 recipes across the three trees that are ours, **31**
@@ -202,11 +217,11 @@ reason to carry any of this:
 
 ## What this costs {#cost}
 
-Every bottle published before the break has to be **rebuilt**, not copied. A
+Every artifact published before the break has to be **rebuilt**, not copied. A
 copy would carry the old internal paths, the old media types and no identity
 — it would move the defects rather than end them.
 
-And now the recipes have to be **written** as well as the bottles rebuilt,
+And now the recipes have to be **written** as well as the artifacts rebuilt,
 which is the larger half and the one with no mechanical shortcut: a lossless
 conversion of an unlicensed recipe is a *more* faithful derivative, not a less
 one. 31 of roughly 1 700 are done.

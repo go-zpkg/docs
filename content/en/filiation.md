@@ -121,7 +121,7 @@ go-zpkg extends the pkgx layout rather than replacing it:
 ```
 
 The bare form is kept and it is not a default. It is the honest statement that
-a bottle arrived without a spec annotation — mirrored, or built before the
+an artifact arrived without a spec annotation — mirrored, or built before the
 factory published one — and that nothing on disk can say which build it is.
 Minting a hash for it would put a claim in the path that no witness supports.
 
@@ -134,7 +134,7 @@ the two cannot drift into two spellings of one idea.
 ## 3. An identity that is only a name {#identity}
 
 Once a build is addressable, it needs to be *identifiable*: what makes this
-bottle this bottle. go-zpkg hashes a **concrete spec** — platform, declared
+artifact this artifact. go-zpkg hashes a **concrete spec** — platform, declared
 variants, resolved closure, recipe plan digest, graft origin — in a
 length-prefixed canonical form, so no two different specs can serialise to the
 same bytes.
@@ -156,9 +156,9 @@ pkgx's `dist.pkgx.dev` serves tarballs over HTTPS. HTTPS authenticates the
 that a particular build produced them.
 
 go-zpkg publishes to an OCI registry with a Sigstore signature and an SLSA
-provenance statement per bottle, and verification is on by default — a bottle
+provenance statement per artifact, and verification is on by default — an artifact
 that cannot be verified is not installed, rather than installed with a warning.
-Mirrored bottles are distinguishable from built ones by their provenance:
+Mirrored artifacts are distinguishable from built ones by their provenance:
 ours carries `externalParameters` and a versioned builder id, a mirror's
 carries `{}` and an unversioned one.
 
@@ -181,7 +181,7 @@ left in the one place it does the most damage. Nothing is migrated: an
 existing `~/.pkgx` is as much pkgx's as ours, and `ZPKG_DIR=~/.pkgx` keeps
 using it for anyone who wants that.
 
-**Kept, for now:** the bottle format, the dependency grammar, the relocatable
+**Kept, for now:** the artifact format, the dependency grammar, the relocatable
 prefix — and the pkgx pantry itself, which `PantryBase` still reads at resolve
 time with our own recipes merged over it.
 
@@ -195,7 +195,7 @@ it at all. The sovereign pantry is **written, not converted**: each recipe
 from the project's *own* build files, with a `provenance` block naming them
 and a signature-verified digest (go-zpkg/packages#440).
 
-The distance is measured rather than asserted: `zbk lint --require-standalone`
+The distance is measured rather than asserted: `zpkb lint --require-standalone`
 counts how many of our recipes resolve without the pantry underneath, and
 `--max-fragments N` is a ratchet that refuses both an increase **and** a
 ceiling nobody lowers.
@@ -212,7 +212,7 @@ so here is what is actually there and what is actually missing.
 
 A factory build does not run on the host. `builder/sovereign-build.sh` enters
 `unshare --mount --pid --fork` and then `chroot`s into a rootfs staged
-entirely from our own bottles — that is what "FROM scratch build" means here:
+entirely from our own artifacts — that is what "FROM scratch build" means here:
 neither the host's libc nor the host's compiler takes part, and the toolchain
 is a reviewed, committed list (`builder/toolchain.txt`, now also a `members`
 set in the pantry overlay) rather than whatever the distribution ships.
@@ -229,7 +229,7 @@ build step from fetching something nobody declared.
 
 ### What a time machine would still need {#time-machine}
 
-`zbk lock` is already most of the way, and it was written against Guix's own
+`zpkb lock` is already most of the way, and it was written against Guix's own
 statement of the problem — *"to reproduce a profile bit-for-bit, manifests
 alone might not be enough"*. It records the pantry revision, the overlay
 revision, every resolved version, a per-project spec hash over
@@ -244,11 +244,11 @@ it is not pinned at all.
 
 Four things stand between that and `guix time machine`:
 
-1. **The lock pins inputs, not output bytes.** `zbk lock`'s own documentation
-   says so rather than implying otherwise: a bottle digest would pin them, and
+1. **The lock pins inputs, not output bytes.** `zpkb lock`'s own documentation
+   says so rather than implying otherwise: an artifact digest would pin them, and
    a lock taken before anything is built has no output to name.
 2. **Nothing measures reproducibility.** No build runs twice and compares. Until
-   it does, "the same inputs give the same bottle" is a hope with no instrument
+   it does, "the same inputs give the same artifact" is a hope with no instrument
    behind it — and `SOURCE_DATE_EPOCH` is not set anywhere.
 3. **The lock does not name the builder image** it was built in, only the
    toolchain list that image is made from.
@@ -266,12 +266,12 @@ is also the list of what a sovereign tree still has to replace.
 
 | | | |
 | --- | --- | --- |
-| `bottle/pkgx.go` | the version grammar, constraints and bottle protocol | pkgx |
-| `bottle/concrete.go` | the concrete spec and its hash | Spack |
-| `bottle/storepath.go` | the store layout, with a hash where there is one | pkgx, plus Nix's reason for the hash |
-| `bottle/builds.go` | the rebuild counter `_N` | Homebrew's `rebuild`, Debian's `+bN` |
-| `bottle/oci.go` | the bottle as an **OCI artifact** rather than a tarball on a host | Homebrew's bottles, `oci.go:9` says "Homebrew-style" |
+| `artifact/pkgx.go` | the version grammar, constraints and artifact protocol | pkgx |
+| `artifact/concrete.go` | the concrete spec and its hash | Spack |
+| `artifact/storepath.go` | the store layout, with a hash where there is one | pkgx, plus Nix's reason for the hash |
+| `artifact/builds.go` | the rebuild counter `_N` | Homebrew's `rebuild`, Debian's `+bN` |
+| `artifact/oci.go` | the artifact as an **OCI artifact** rather than a tarball on a host | Homebrew's artifacts, `oci.go:9` says "Homebrew-style" |
 | `provenance { consulted }` | the packaging read for reference, named per recipe | homebrew-core (BSD-2), nixpkgs (MIT), spack-packages (Apache-2.0), pkgsrc — all readable, unlike `pkgxdev/pantry` |
-| `zbk sourcepin` | the digest checked when it is RECORDED, not at every build | Guix's `guix refresh`; the mandatory fingerprint is Arch's `validpgpkeys` |
+| `zpkb sourcepin` | the digest checked when it is RECORDED, not at every build | Guix's `guix refresh`; the mandatory fingerprint is Arch's `validpgpkeys` |
 | `PantryBase` | **the pkgx pantry, read directly — the dependency being wound down** | pkgx |
 | `ZPKG_DIST` | the distribution, defaulting to the signed registry | ours |

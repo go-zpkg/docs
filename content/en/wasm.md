@@ -6,13 +6,13 @@ weight: 85
 # Packages that run in a WebAssembly runtime {#packages-that-run-in-a-webassembly-runtime}
 
 `wasip1/wasm` is a platform of the factory like `linux/x86-64` or
-`darwin/aarch64`: the same recipes, the same `zbk publish`, the same registry at
+`darwin/aarch64`: the same recipes, the same `zpkb publish`, the same registry at
 `oci://ghcr.io/go-pkgx/packages`, and the same catalogue. What differs is the
 one property that changes everything downstream.
 
 ## A wasip1 module is statically linked, so there is no closure
 
-On every other platform a bottle is a node in a dependency graph. `zpkgx` walks
+On every other platform an artifact is a node in a dependency graph. `zpkgx` walks
 it, installs the transitive closure, and sets up the environment the dynamic
 loader needs — `DT_NEEDED` on ELF, `@rpath` on Mach-O.
 
@@ -23,7 +23,7 @@ path exists for.
 
 Two consequences follow, and the second is a trap:
 
-- **One file is enough.** Fetching one bottle gives you something you can run.
+- **One file is enough.** Fetching one artifact gives you something you can run.
   There is nothing else to resolve.
 - **Do not resolve a `wasip1/wasm` closure.** There is nothing to resolve, and a
   consumer that walks the deps anyway is doing work whose answer cannot matter.
@@ -34,35 +34,35 @@ Two consequences follow, and the second is a trap:
   Confirmed in the catalogue generated `2026-10-31T21:28:42Z`.
 
   It was not always so, and the shape of the defect is worth keeping. Until
-  v0.46.0 — when the command was still called `bk` — `zbk catalog` read a
+  v0.46.0 — when the command was still called `bk` — `zpkb catalog` read a
   project's fields from the **pantry host**
   recipe even when a platform lane had its own, so `lua.org` on wasip1/wasm
   listed `gnu.org/readline` — a package not published for the platform, and one
   the wasm build does not use at all, because it builds Lua's generic `ansi`
   platform with no line editor. Nothing broke at run time, because nothing
   needs resolving, which is exactly why it went unnoticed.
-  ([go-zpkg/zbk#376](https://github.com/go-zpkg/zbk/issues/376), fixed.)
+  ([go-zpkg/zpkb#376](https://github.com/go-zpkg/zpkb/issues/376), fixed.)
 
 - **`provides` is trustworthy again, and it is the half that mattered.** It is
   what `zpkgx -Q <command>`, `zpkgs search` by command name and the `<TAB>` index
   are built from, so the same defect had sharper consequences there: in the
   catalogue of `2026-10-31T20:13Z`, `zlib.net` listed **no** command although
-  its bottle ships `bin/minigzip.wasm` — `minigzip` was published, runnable and
-  unreachable by name — while `filippo.io/age` listed an `age-keygen` its bottle
+  its artifact ships `bin/minigzip.wasm` — `minigzip` was published, runnable and
+  unreachable by name — while `filippo.io/age` listed an `age-keygen` its artifact
   does not contain, sending anyone who asked for that command to a project that
   could not supply it. As of `21:28:42Z` `zlib.net` names `minigzip`.
 
   Two things from that episode are worth copying rather than forgetting. It was
   found by **running** every published module, not by parsing the catalogue — a
   consumer that only reads the catalogue cannot see either direction. And
-  `zbk provides` now exists to ask the question in the factory: it compares a
-  published bottle's actual `bin/*` against the `provides` the catalogue claims,
+  `zpkb provides` now exists to ask the question in the factory: it compares a
+  published artifact's actual `bin/*` against the `provides` the catalogue claims,
   and reports "listed, no file" and "file, not listed" as the separate failures
   they are.
 
 ## Running one
 
-The reference runtime is [wasmtime](https://wasmtime.dev). Every bottle is run
+The reference runtime is [wasmtime](https://wasmtime.dev). Every artifact is run
 under it before it is published — the factory's `wasip1.yml` (Go lane) and
 `wasip1-c.yml` (C/C++ lane) both do this, and a module that will not run is
 not published.
@@ -106,14 +106,14 @@ fetched. See [Finding packages]({{< relref "finding-packages.md" >}}).
 
 ## Running one in a browser
 
-The modules are the same bottles; a browser is just another WASI host. The
+The modules are the same artifacts; a browser is just another WASI host. The
 landing page carries a playground that runs them client-side, at
 [/playground/](https://go-zpkg.github.io/playground/).
 
 Two details of how it is built are worth knowing if you build something
 similar:
 
-- **`ghcr.io` sends no CORS headers.** A page cannot fetch a bottle from the
+- **`ghcr.io` sends no CORS headers.** A page cannot fetch an artifact from the
   registry; every browser refuses it, and no test on the page catches that
   because the page's own tests do not cross an origin. The modules have to be
   served from the page's own origin, which means a build step copies them
@@ -135,10 +135,10 @@ some of them.
 
 ## What will not build for wasip1, and why {#what-will-not-build}
 
-A `wasip1/wasm` bottle is only published after the module has been **run** under
+A `wasip1/wasm` artifact is only published after the module has been **run** under
 wasmtime, so the lanes carry what works. This section is the other half: the
 candidates that were tried and rejected, with the cause. It is here because a
-documented "no, because X" is worth as much as a published bottle and saves the
+documented "no, because X" is worth as much as a published artifact and saves the
 next person the same hours.
 
 Every cause below is a compiler or linker error from a real attempt at the
@@ -193,10 +193,10 @@ attempted, not from reading a header:
 
 The pattern across all of them: **a green build says very little.** Three of the
 eight above pass compilation and linking and fail only when the program runs,
-which is why every bottle on this platform is run under wasmtime before it is
+which is why every artifact on this platform is run under wasmtime before it is
 published.
 
-### ⛔ A bottle's bytes are not stable across a toolchain bump {#bytes-and-toolchain}
+### ⛔ An artifact's bytes are not stable across a toolchain bump {#bytes-and-toolchain}
 
 The C/C++ lane resolves its toolchain — `llvm.org`, `wasi-libc`,
 `compiler-rt.llvm.org/wasi`, `libcxx.llvm.org/wasi` — **at build time**, and
@@ -213,7 +213,7 @@ one linking the floating `libcxx`.
 Tracked in [go-zpkg/packages#393](https://github.com/go-zpkg/packages/issues/393),
 together with the separate finding that the publish step replaced an existing
 `(project, version, platform)` instead of skipping it. Until both are closed,
-**a version does not pin bytes on this platform**; a `zbk lock` pins the version,
+**a version does not pin bytes on this platform**; a `zpkb lock` pins the version,
 and that is a weaker guarantee than it sounds.
 
 ### A tag that is not `v<version>`

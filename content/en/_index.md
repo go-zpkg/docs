@@ -95,7 +95,7 @@ repository's own release workflow built that file from that commit:
 gh attestation verify -R go-zpkg/zpkgm zpkgm-linux-amd64
 ```
 
-Every file of every `zpkgx`, `zpkgs`, `zbk`, `zpkgm` and `mirror` release
+Every file of every `zpkgx`, `zpkgs`, `zpkb`, `zpkgm` and `mirror` release
 published from 2026-10-20 carries one. Earlier releases carry none, and
 `gh attestation verify` answers `HTTP 404` for those rather than failing
 closed, so a 404 on an older binary means *unattested*, not *tampered with*.
@@ -116,7 +116,7 @@ To install `zpkgx` (the runtime) or `mirror` instead, name it:
 go install github.com/go-zpkg/zpkgm@latest
 ```
 
-Once installed, `zpkgm install lz4.org` verifies each bottle against the signed
+Once installed, `zpkgm install lz4.org` verifies each artifact against the signed
 registry by default.
 
 ## Usage {#usage}

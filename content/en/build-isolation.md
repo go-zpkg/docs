@@ -28,30 +28,30 @@ literally-empty `FROM scratch` base with no system libc at all.
 
 It is **shipped, and it is the default**. The factory's `sovereign` input says
 so in its own description: *blank* builds inside the `FROM scratch` rootfs
-`zbk builder` stages, "so neither the host's libc nor its compiler takes
+`zpkb builder` stages, "so neither the host's libc nor its compiler takes
 part", and `0` is what falls back to the runner's distribution.
 
-- `zbk build --libc=zpkgx` and `zbk factory --libc=zpkgx` target the
-  `gnu.org/glibc` bottle — its crt objects, its libc, its dynamic linker —
+- `zpkb build --libc=zpkgx` and `zpkb factory --libc=zpkgx` target the
+  `gnu.org/glibc` artifact — its crt objects, its libc, its dynamic linker —
   instead of the container's;
 - `--glibc <version>` pins that sysroot to an exact glibc line;
-- `zbk builder` stages the rootfs itself: static Go binaries plus toolchain
-  bottles from the signed registry, nothing else;
+- `zpkb builder` stages the rootfs itself: static Go binaries plus toolchain
+  artifacts from the signed registry, nothing else;
 - design note:
-  [`zbk/docs/from-scratch-toolchain.md`](https://github.com/go-zpkg/zbk/blob/main/docs/from-scratch-toolchain.md).
+  [`zpkb/docs/from-scratch-toolchain.md`](https://github.com/go-zpkg/zpkb/blob/main/docs/from-scratch-toolchain.md).
 
 **Corrected 2026-10-27.** This page previously described Phase B as
 experimental, living on branch `feat/zpkgx-glibc-toolchain`, and gated behind
 a `BK_ZPKG_LIBC=1` environment variable. All three were out of date: the work
 is on `main`, the gate is the `--libc` flag above, and no such variable appears
-in zbk's code — only inside the design note that first proposed it, where the
+in zpkb's code — only inside the design note that first proposed it, where the
 rename has since spelled it `ZBK_ZPKG_LIBC`. The old spelling is kept in this
 paragraph because the paragraph is about what this page used to say.
 
 ### What a sovereign toolchain does not reach {#what-a-sovereign-toolchain-does-not-reach}
 
 The sysroot, the `-isystem` directories and the runtime choice reach a build
-**through the compiler driver** — `cc`, which is zbk's own shim and re-execs
+**through the compiler driver** — `cc`, which is zpkb's own shim and re-execs
 `$ZBK_CC`, or `$CC`. A tool that drives the compiler some other way sees none
 of it.
 
@@ -64,7 +64,7 @@ bindings therefore got the container's idea of a libc, or none at all —
 ```
 
 — in a build where openssl 3.6.4 had been found, probed and configured
-correctly a few lines earlier. Since zbk v0.43.0 sovereign mode also exports
+correctly a few lines earlier. Since zpkb v0.43.0 sovereign mode also exports
 `BINDGEN_EXTRA_CLANG_ARGS`, the variable bindgen's own documentation names
 for exactly this, carrying the header-finding flags only and appended to
 whatever the recipe set.

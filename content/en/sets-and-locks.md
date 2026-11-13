@@ -24,8 +24,8 @@ members = {
 }
 ```
 
-Anything that takes a project name takes a set: `zbk closure
-go-zpkg/base-toolchain`, `zbk factory --recipes go-zpkg/base-toolchain`. A set
+Anything that takes a project name takes a set: `zpkb closure
+go-zpkg/base-toolchain`, `zpkb factory --recipes go-zpkg/base-toolchain`. A set
 is expanded **at the root**, before the dependency walk sees it, so nothing
 downstream has to learn the word.
 
@@ -57,10 +57,10 @@ deterministically once the channel revision is pinned, because the version is
 resolve time**, so pinning the pantry commit is not enough: the same pantry
 resolves `gnu.org/binutils` to whatever the newest tag is the day you ask.
 
-`zbk lock` writes the answer down:
+`zpkb lock` writes the answer down:
 
 ```console
-$ zbk lock --platform linux/x86-64 -o base-toolchain.lock.hcl go-zpkg/base-toolchain
+$ zpkb lock --platform linux/x86-64 -o base-toolchain.lock.hcl go-zpkg/base-toolchain
 set: go-zpkg/base-toolchain names 25 member(s)
 lock: 41 project(s) pinned → base-toolchain.lock.hcl
 ```
@@ -104,10 +104,10 @@ not move it and changing what it says does.
 ## Checking a lock later {#checking-a-lock-later}
 
 Cargo's `--locked` and npm's `ci` exist because a lock nobody verifies is a
-lock nobody can rely on. `zbk lock --check` re-resolves and says what moved:
+lock nobody can rely on. `zpkb lock --check` re-resolves and says what moved:
 
 ```console
-$ zbk lock --check base-toolchain.lock.hcl
+$ zpkb lock --check base-toolchain.lock.hcl
 lock: linux/x86-64 · 2026-10-05T09:10:39Z · 41 pinned, 2 hour(s) old
 lock: pantry revision differs: fd64699… → 9ab12cd…
   gnu.org/binutils                   2.47 → 2.48
@@ -159,7 +159,7 @@ It refuses rather than guesses:
 
 | refused | why |
 | --- | --- |
-| a lock pinning `recipes` versions | those are the newest the recipes can **build**, not the newest **published**: a fresh lock of `curl.se` for linux/aarch64 had 2 of its 5 pins ahead of the published bottles. Write an installable one with `zbk lock -runnable`. A lock with no `pinned` field is a `recipes` lock — that is what every file written before the field existed holds |
+| a lock pinning `recipes` versions | those are the newest the recipes can **build**, not the newest **published**: a fresh lock of `curl.se` for linux/aarch64 had 2 of its 5 pins ahead of the published artifacts. Write an installable one with `zpkb lock -runnable`. A lock with no `pinned` field is a `recipes` lock — that is what every file written before the field existed holds |
 | a lock taken on another platform | the platform **changes the answer**, and where versions happen to coincide it would otherwise succeed and give a set nobody locked |
 | `--lock` beside packages, `-f`, `-p` or `-s` | a lock is the whole set, not a floor to add to |
 
@@ -167,7 +167,7 @@ That last row has a cost worth naming: `-s/--from-scratch` materialises the
 implicit `glibc`/`libgcc_s`/`libstdc++`/`libatomic` a scratch tree needs, and
 a lock does not pin them. So a `FROM scratch` image built this way is **not
 yet** reproducible from a lock alone — that needs those libraries pinned in
-the lock, which is a change to `zbk lock`, not a flag here. The combination is
+the lock, which is a change to `zpkb lock`, not a flag here. The combination is
 refused instead of quietly installing more than the file describes.
 
 ## What a lock does not pin {#what-a-lock-does-not-pin}

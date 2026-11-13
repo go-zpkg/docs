@@ -20,8 +20,8 @@ registry  ghcr.io/…/fftw.org:3.3.11-h7k2mq4xvbnd3rf5c
 
 {{< callout type="info" >}}
 **What ships today.** The identity, the hashed store prefix, the hashed
-registry tag and the spec annotation are in `zbk` v0.63.0 and `bottle`
-v0.81.0, and `zbk factory` publishes with them. `zpkgs builds` is in `zpkgx`
+registry tag and the spec annotation are in `zpkb` v0.63.0 and `artifact`
+v0.81.0, and `zpkb factory` publishes with them. `zpkgs builds` is in `zpkgx`
 v0.36.0 and runs now.
 
 **What does not.** Naming a build with `@version/<hash>` is **refused** by the
@@ -30,7 +30,7 @@ resolver rather than honoured: carrying the hash down to the store is
 of a version under a name that says you chose one would be worse than saying
 no, so it says no and points at `zpkgs builds`.
 
-And until the registry is rebuilt with hashed tags, every published bottle
+And until the registry is rebuilt with hashed tags, every published artifact
 answers `nothing recorded` — which is the truth about the registry as it
 stands, not a defect in the command.
 {{< /callout >}}
@@ -56,7 +56,7 @@ mechanism Nix uses when a derivation references its inputs by store path.
 Reformatting a recipe, reordering its keys or rewriting its comments does not
 move the hash; changing what it says does. Hashing the file's bytes instead
 would make a reflowed comment rebuild the world — every dependent's hash
-moves, every bottle is republished, and no binary differs. Spack strips
+moves, every artifact is republished, and no binary differs. Spack strips
 comments and docstrings from `package.py` before hashing for the same reason.
 
 ## The tag carries the address, the manifest carries the meaning {#tag-and-annotation}
@@ -65,7 +65,7 @@ A hash is opaque by construction. Nix pays for that: a store path says *which*
 build and never *what* build, so answering "the one with CUDA?" needs a second
 index.
 
-So a published bottle carries its spec on its manifest:
+So a published artifact carries its spec on its manifest:
 
 ```
 io.github.go-zpkg.spec = {"v":1,"platform":"linux/x86-64","deps":[…],"recipe":"sha256:…"}
@@ -74,14 +74,14 @@ io.github.go-zpkg.spec = {"v":1,"platform":"linux/x86-64","deps":[…],"recipe":
 and a reader **recomputes** the hash from it and checks it against the tag. An
 identity you cannot recompute is a claim, not a description; both halves come
 from whoever could push to the registry, so reading the second without
-checking it against the first would let a bottle tagged as the plain build
+checking it against the first would let an artifact tagged as the plain build
 describe itself as the CUDA one.
 
 Spack keeps the spec queryable the same way (`spack find libdwarf +debug`),
 and conda writes its hash inputs to `info/hash_input.json` beside the hash.
 Readability is a tooling property here, not a naming one.
 
-A bottle that was only **mirrored** carries neither: no hash in its tag and no
+An artifact that was only **mirrored** carries neither: no hash in its tag and no
 annotation. We do not know how it was built, and a tag claiming an address
 would say we do.
 
@@ -119,7 +119,7 @@ A `⚠` marks a row that does not meet your `ZPKG_TRUST_THRESHOLD` and will be
 refused at install time. A `?` means the registry could not be asked, which is
 **not** the same as *nobody signed it* — rendering the two alike is how a
 network failure becomes a claim about the artefact. See
-[Supply chain]({{< relref "supply-chain.md" >}}#two-builders-one-bottle).
+[Supply chain]({{< relref "supply-chain.md" >}}#two-builders-one-artifact).
 
 ### The WHAT column is the whole point {#what-column}
 
@@ -166,13 +166,13 @@ supersede the plain one.
 
 {{< callout type="warning" >}}
 **There is no `date` key, and that is a property rather than a gap.** A
-published bottle's timestamp is pinned — `zbk factory` stamps
+published artifact's timestamp is pinned — `zpkb factory` stamps
 `SOURCE_DATE_EPOCH`, or its own fixed epoch, never the wall clock — so that
-re-publishing the same bottle yields byte-identical attestations and the same
+re-publishing the same artifact yields byte-identical attestations and the same
 referrer digests, which is what makes a re-push idempotent instead of
 accumulating duplicates.
 
-Every bottle therefore carries the **same instant**. Sorting by it would order
+Every artifact therefore carries the **same instant**. Sorting by it would order
 a list by a constant while looking like it ordered by time, and taking the
 wall clock instead would make every rebuild a new artefact.
 
@@ -212,8 +212,8 @@ source rather than in how it was compiled — and an entry naming one build wins
 over it, so the build that *fixes* the flaw is not reported as carrying it.
 
 The list is read locally and never from the network: the resolver must keep
-working `FROM scratch` and air-gapped. Where the file comes from — `zbk
-advisories` and the VEX documents attached to published bottles — is a
+working `FROM scratch` and air-gapped. Where the file comes from — `zpkb
+advisories` and the VEX documents attached to published artifacts — is a
 separate matter.
 
 ## Naming one {#naming-one}
