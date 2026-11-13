@@ -1,0 +1,6 @@
+go-zpkg/artifact#233 @8a379f4 PASS SUCCESS:28
+go-zpkg/docs#78 @043ffd1 PASS SKIPPED:1 SUCCESS:2
+go-zpkg/go-zpkg.github.io#98 @64dbea1 FAIL current / the landing names what the organisation has=FAILURE docs (pull_request run)=FAILURE
+go-zpkg/.github#33 @f8ce089 PASS SUCCESS:2
+go-zpkg/mirror#60 @39a11a5 PASS SUCCESS:22
+go-zpkg/packages#456 @72d5710 PASS SUCCESS:12

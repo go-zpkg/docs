@@ -65,7 +65,7 @@ all.
 
 **Inherited:** `~/.pkgx`, and `~/.pkgx/config.hcl2` beside it.
 
-**The defect.** `~/.pkgx` is *pkgx's* store. Once our runtime is `zpkgx`,
+**The defect.** `~/.pkgx` is *pkgx's* store. Once our runtime is `zpkx`,
 `pkgx` can be installed on the same machine and the same PATH —
 which is the entire reason for the rename. Two implementations writing one
 directory, under two layouts that are no longer even the same, is the
