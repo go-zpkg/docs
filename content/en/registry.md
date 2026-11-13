@@ -25,7 +25,7 @@ Every platform — **linux/x86-64**, **linux/aarch64**, **darwin/aarch64**,
 
 The [`go-zpkg/packages`](https://github.com/go-zpkg/packages) repo is the factory.
 GitHub Actions workflows build each recipe with
-[`zbk`](https://github.com/go-zpkg/zbk) — the CGO-free re-implementation of brewkit
+[`zpkb`](https://github.com/go-zpkg/zpkb) — the CGO-free re-implementation of brewkit
 — and publish the result to both channels.
 
 - **Factories:** `build.yml` (linux), `darwin.yml` (macOS), `windows.yml` (Go) +
@@ -37,32 +37,32 @@ GitHub Actions workflows build each recipe with
   publishes it **to the OCI registry only** (no Pages mirror yet) with the OCI
   platform `os=wasip1, architecture=wasm` (zpkgx slug `wasip1/wasm`). The module is
   `bin/<name>.wasm`; a recipe's `provides: bin/<name>` stays extension-free and
-  `bottle.ResolveBinPath` finds the `.wasm`, as it finds `.exe` on Windows. Pilots:
+  `artifact.ResolveBinPath` finds the `.wasm`, as it finds `.exe` on Windows. Pilots:
   `filippo.io/age` 1.3.2, `github.com/cpuguy83/go-md2man` 2.0.7, `mvdan.cc/sh`
-  (`shfmt`) 3.14.1. The build side is `zbk`'s `wasip1/wasm` target
+  (`shfmt`) 3.14.1. The build side is `zpkb`'s `wasip1/wasm` target
   (`BREWKIT_TARGET=wasip1/wasm`, triple `wasm32-wasip1`; `wasm` is an architecture
   of `wasip1` only).
 - **`wasip1/wasm` C tools:** `wasip1-c.yml` builds C with our own toolchain, not a
-  prebuilt wasi-sdk: the `llvm.org` bottle (clang, wasm-ld, llvm-ar) plus two cross
+  prebuilt wasi-sdk: the `llvm.org` artifact (clang, wasm-ld, llvm-ar) plus two cross
   parts built from source in the pantry overlay, following wasi-sdk's
   `cmake/wasi-sdk-sysroot.cmake` — `compiler-rt.llvm.org/wasi` (builtins for
   wasm32-wasip1 and clang's headers, as a clang resource dir) and
-  `github.com/WebAssembly/wasi-libc` (the sysroot). `zbk --platform wasip1/wasm
-  build` adds the three bottles and imposes `clang --target=wasm32-wasip1
+  `github.com/WebAssembly/wasi-libc` (the sysroot). `zpkb --platform wasip1/wasm
+  build` adds the three artifacts and imposes `clang --target=wasm32-wasip1
   --sysroot=… -resource-dir=… -mcpu=lime1 --rtlib=compiler-rt` through `$ZBK_CC` /
   `$ZBK_CXX`, the stencil the cc/gcc/clang shims re-exec. Published as `wasip1/wasm`
   after a run under wasmtime: `zlib.net` 1.3.2 (libz.a, minigzip), `sqlite.org`
   3.53.4 (the shell) and `lua.org` 5.4.9 (errors via setjmp/longjmp, compiled to the
   standard WebAssembly exception-handling instructions — a `pcall(error)` runs under
-  wasmtime 50). The build runs **inside the sovereign rootfs** (`zbk builder`'s tree,
+  wasmtime 50). The build runs **inside the sovereign rootfs** (`zpkb builder`'s tree,
   entered by `builder/sovereign-bk.sh`), so `sh`, `make`, coreutils, clang and wasm-ld
-  are bottles in that tree and a "what ran, from where" step prints their resolved
+  are artifacts in that tree and a "what ran, from where" step prints their resolved
   paths from inside the chroot; the runner contributes three static Go binaries, the
-  namespace and wasmtime. **C++**: a third source-built bottle, `libcxx.llvm.org/wasi`
+  namespace and wasmtime. **C++**: a third source-built artifact, `libcxx.llvm.org/wasi`
   (libc++ and libc++abi, no exceptions, from wasi-sdk's `define_libcxx_sub`), named by
   the `$ZBK_CXX` stencil when installed; pilot `github.com/simdjson/simdjson` 5.0.5
   (upstream's library plus a small minifier driver), run under wasmtime. Pilots and
-  toolchain bottles are published for **linux/aarch64 hosts too** (native
+  toolchain artifacts are published for **linux/aarch64 hosts too** (native
   `ubuntu-24.04-arm` runner). Not yet: C++ exceptions (wasi-sdk's `DUAL` flavour,
   `-fwasm-exceptions` plus libunwind) and darwin hosts.
 - **Schedule:** each factory runs on a schedule (plus manual `workflow_dispatch`).
@@ -98,7 +98,7 @@ A recipe fix can change the binary without changing the upstream version.
 Measured on 2026-11-02: `fftw.org` gained its SIMD codelets, was rebuilt, and
 published as **`3.3.11`** — the tag the scalar build already had. `nm` on the
 two shows **0 → 207** `_neon` symbols in both the single- and
-double-precision libraries. Plainly different bottles, and nothing in the
+double-precision libraries. Plainly different artifacts, and nothing in the
 registry said so; anyone holding the old one kept it, because the version
 they had and the version on offer were the same string.
 
@@ -128,7 +128,7 @@ libpkgx's `SemVer` constructor (`src/utils/semver.ts:26-41`, read
 
 **Pointing a pkgx client at this registry is therefore unsupported
 once a project carries a rebuild.** That was weighed rather than overlooked:
-it throws rather than resolving the wrong bottle, which is the better of the
+it throws rather than resolving the wrong artifact, which is the better of the
 two failures. `zpkgx`, `zpkgs` and `zpkgm` from this org read `_N` correctly.
 
 The alternatives were rejected for reasons worth knowing if you are tempted
@@ -141,7 +141,7 @@ cannot be a tag at all: the OCI distribution spec requires
 "MUST be ignored when determining version precedence", so it could not
 express *supersedes* even if it fitted.
 
-## A bottle that runs somewhere else {#a-bottle-that-runs-somewhere-else}
+## An artifact that runs somewhere else {#a-artifact-that-runs-somewhere-else}
 
 `$ZPKG_DIR` is wherever you put it. A package that records where it was *built*
 is not a package, it is a souvenir — so every binary is normalised before it is
@@ -173,7 +173,7 @@ does not orphan its dependents.
 And the binary must carry an rpath that actually reaches `$ZPKG_DIR` from where
 it installs. That one is linked in at build time rather than repaired
 afterwards: its value is how deep the package installs, which is a fact about
-the recipe and cannot be recovered from the binary. A bottle whose references to
+the recipe and cannot be recovered from the binary. An artifact whose references to
 other packages resolve only through the builder's own absolute rpath is
 **refused**, not published.
 
@@ -183,14 +183,14 @@ message.
 
 ### Except what was mirrored {#except-what-was-mirrored}
 
-Not every package here was built here. Where a bottle already exists elsewhere
+Not every package here was built here. Where an artifact already exists elsewhere
 and rebuilding it would buy nothing, the factory **copies** it and republishes
 it with our own signature, SBOM and provenance. Those attestations are ours and
 mean what they say: this is the artefact we published, and this is where it came
 from.
 
 What they do **not** mean is that the normalisation above was applied. A
-mirrored bottle is republished byte-for-byte; nothing unpacks it, so nothing
+mirrored artifact is republished byte-for-byte; nothing unpacks it, so nothing
 rewrites its install names and no guard refuses it. It carries whatever the
 original build produced — including, in at least one published case, a RUNPATH
 naming absolute paths under `/opt` that exist on nobody's machine.

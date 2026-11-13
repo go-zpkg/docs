@@ -68,7 +68,7 @@ to Windows almost for free.
 **(B) Consuming packages** — the go-zpkg client side, which we control. **Done and
 proven on a real `windows-latest` runner** (go-zpkg v0.3.0):
 
-- `bottle.Exec` was `syscall.Exec` (UNIX-only; on Windows it's a stub returning
+- `artifact.Exec` was `syscall.Exec` (UNIX-only; on Windows it's a stub returning
   `EWINDOWS`). Split build-tagged: Windows spawns the target as a child with
   inherited stdio, waits, and exits with its code — a faithful `exec` analogue.
 - `goos()` reports `"windows"`; `bin/foo` resolves to `foo.exe`.

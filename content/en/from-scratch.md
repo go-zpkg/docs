@@ -16,7 +16,7 @@ A zpkgx package assumes a host system. Two structural gaps surface on scratch:
 
 1. **The interpreter path.** Every dynamic ELF has `PT_INTERP=/lib/ld-linux-*`
    — an absolute system path that does not exist on a scratch image. `zpkgm run`
-   symlinks the glibc bottle's own loader to `/lib/ld-linux-*` (and `/bin/sh` to
+   symlinks the glibc artifact's own loader to `/lib/ld-linux-*` (and `/bin/sh` to
    itself) so parent and child ELFs resolve natively.
 
 2. **Incomplete runtime dependency graphs.** A package's `package.yml`
@@ -42,7 +42,7 @@ not yet provided by the closure, pull the package that provides it:
 - `libgcc_s`, `libstdc++` → `gnu.org/gcc/libstdcxx`
 - `libatomic`, `libgomp` → `gnu.org/gcc`
 - common undeclared libraries → a curated `soname → project` table
-  (see `sonameProject` in [`closure.go`](https://github.com/go-zpkg/bottle/blob/main/closure.go)): libz, libbz2,
+  (see `sonameProject` in [`closure.go`](https://github.com/go-zpkg/artifact/blob/main/closure.go)): libz, libbz2,
   liblzma, libzstd, liblz4, ncurses/libtinfo, readline, libffi, pcre2, gettext,
   libiconv, libidn2, libunistring, libpsl, nghttp2, expat, libxml2, sqlite3,
   gmp, mpfr, **libcrypt → libxcrypt**, …

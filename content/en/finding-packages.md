@@ -72,19 +72,19 @@ and no answer at all in a `FROM scratch` image that has not fetched anything
 yet.
 
 What it shows is what recipes **declare**. It is not the installed closure:
-`bottle` also pulls providers by soname that no recipe names, so a real
+`artifact` also pulls providers by soname that no recipe names, so a real
 install can hold more than this tree does.
 
 ## Everything is named; what is here is marked {#everything-is-named-what-is-here-is-marked}
 
 ```console
 $ zpkgs ls doxygen.nl
-doxygen.nl — no bottle here
+doxygen.nl — no artifact here
 
 $ zpkgs ls --tree curl.se
 curl.se — 8.17.0
   curl.se/ca-certs  2026.09.25
-  doxygen.nl  (no bottle here)
+  doxygen.nl  (no artifact here)
   openssl.org  3.6.0
 ```
 
@@ -94,7 +94,7 @@ linux/x86-64 has.
 
 **Dropping the name** would tell you the project does not exist, which is
 false. **Printing it bare** tells you nothing. **Marking it** tells you it
-exists, that there is no bottle for you, and therefore that building it is
+exists, that there is no artifact for you, and therefore that building it is
 the thing to do next.
 
 In a tree, that mark is usually the most useful line on the page: an
@@ -118,12 +118,12 @@ carries.
 
 The mark is not rare. Measured against the published `darwin/aarch64`
 catalogue on 2026-10-23, **567 of 1940 projects** have a recipe and no
-bottle — 29% of the pantry. `zpkgs ls` marks each one as you meet it; to see
+artifact — 29% of the pantry. `zpkgs ls` marks each one as you meet it; to see
 them as a list rather than one at a time:
 
 ```console
 $ go run ./internal/catstat -missing ~/.zpkg/catalog/darwin-aarch64.json
-567 of 1940 project(s) have no bottle here
+567 of 1940 project(s) have no artifact here
 aerc-mail.org
 agpt.co
 …
@@ -231,7 +231,7 @@ damaged one — one interrupted write costing two records.
 $ zpkgs ls --tree curl.se
 curl.se — 8.17.0  ✓
   curl.se/ca-certs  2026.09.25  ✓
-  doxygen.nl  (no bottle here)
+  doxygen.nl  (no artifact here)
   openssl.org  3.6.0  ✓ 3.5.1
 ```
 
@@ -262,9 +262,9 @@ gohugo.io                                1020.5 MiB  13 versions, 934.6 MiB not 
 12.8 GiB is in versions that are not the newest present — which is not the same as unused
 ```
 
-Every ephemeral run leaves its bottles behind and **nothing removes one**.
+Every ephemeral run leaves its artifacts behind and **nothing removes one**.
 `zpkgm list` answers a different question — what you asked to have installed —
-so a bottle pulled six months ago to run one command is in neither. Those
+so an artifact pulled six months ago to run one command is in neither. Those
 figures are one developer's machine on 2026-10-08, and **thirteen versions of
 gohugo.io** is not a number anybody chose.
 
@@ -342,7 +342,7 @@ amount of descending reaches them.
 ```console
 $ zpkgs ls --dependents openssl.org
 openssl.org — 4.0.2  ✓ 3.6.0
-  agwa.name/git-crypt  (no bottle here)
+  agwa.name/git-crypt  (no artifact here)
   apache.org/arrow  25.0.1
   …
 
@@ -359,7 +359,7 @@ could not be obtained at all. Counted on the catalogues published 2026-10-06,
 | linux/aarch64 | 164 | 854 |
 
 Out of 1908 projects in each. The two differ because a catalogue records what a
-platform really carries, so a project with no bottle here has no edges here. That
+platform really carries, so a project with no artifact here has no edges here. That
 is why the command prints the platform under the list rather than leaving the
 figure to be quoted bare.
 
@@ -426,7 +426,7 @@ Those figures are not a recollection: `go run ./internal/catstat
 have, through the same parser the client uses, so you can check them
 against your own catalogue rather than against this page. Both published
 platforms agree on the number that matters — six — and differ where you
-would expect them to, 1430 projects with a bottle on linux/aarch64 against
+would expect them to, 1430 projects with an artifact on linux/aarch64 against
 1371 on darwin/aarch64.
 
 [go-zpkg/zpkgx]: https://github.com/go-zpkg/zpkgx
@@ -443,7 +443,7 @@ $ zpkgs browse
 gnu.org — 54
 
 > gnu.org/bash                             5.3  ✓
-  gnu.org/gcc                              no bottle here
+  gnu.org/gcc                              no artifact here
  +gnu.org/make                             4.4.1
 
 ↑ ↓ move · → descend · ← back · tab names ⇄ dependencies · / search
@@ -479,7 +479,7 @@ asks GitHub at resolution time.
 it a lock rather than a hint, and a set that cannot be satisfied exactly
 fails instead of materialising something near it. A lock taken on another
 platform is refused by name: **537 of 1908** projects available on
-`linux/x86-64` have no bottle for `darwin/aarch64`.
+`linux/x86-64` have no artifact for `darwin/aarch64`.
 
 An environment is still **not** a lockfile. An environment names a *set* and
 resolves it afresh; a lock names *versions*. Two paths, side by side.
@@ -527,12 +527,12 @@ channel checkout, a package repo. The zpkgx-native equivalent is an artefact
 in the registry itself, so the registry carries a **catalogue**:
 
 ```console
-$ zbk catalog --pantry … --overlay … -o catalog.json
+$ zpkb catalog --pantry … --overlay … -o catalog.json
 catalog: 1908 project(s) → catalog.json
 ```
 
 1908 projects, 905 roots, **100 KB**, built in 0.4 s with no network. It is
-an **ordinary bottle** — signed, attested, mirrored and cached like any
+an **ordinary artifact** — signed, attested, mirrored and cached like any
 other, fetched in one pull — and it is published **per platform**, because
 what is available differs by architecture and a single list would tell most
 readers that packages are available which, for them, are not.
@@ -559,7 +559,7 @@ answer as "nothing is available here". `wasip1/wasm` is the odd one and has
 a catalogue entry there names build-time dependencies that are not themselves
 published for that platform.
 
-Signed, and **checked**: forging a catalogue does not get an unsigned bottle
+Signed, and **checked**: forging a catalogue does not get an unsigned artifact
 installed, because the install path verifies anyway. It gets a near-miss
 name offered at your prompt, which is the whole of a typosquat. The attack
 is on the reader.
@@ -637,7 +637,7 @@ satisfy but not published here: 1.27.1); asked for by ^1.27.1 (requested)
 ```
 
 **"Satisfy but not published here"** is the distinction that matters: the
-version exists as a tag and no bottle carries it for that platform. Before
+version exists as a tag and no artifact carries it for that platform. Before
 the flag, `--graph` resolved for the host and said so about everywhere.
 
 ⛔ **`ZPKG_CATALOG` does not redirect `--graph`.** `ls`, `search` and `why`
@@ -655,7 +655,7 @@ catalogue — it resolves against the registry. To ask about another platform:
 It used to answer the **host's** resolution there, with exit 0 and no sign
 the file was never opened ([go-zpkg/zpkgx#110](https://github.com/go-zpkg/zpkgx/issues/110)).
 A catalogue records what is *published*; `--graph` resolves what *would
-satisfy* a constraint, including versions no bottle carries. Those are
+satisfy* a constraint, including versions no artifact carries. Those are
 different questions, and the "satisfy but not published here" line above
 depends on telling them apart.
 

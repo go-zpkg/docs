@@ -192,7 +192,7 @@ and linux/aarch64 they are identical**, `lib/libssl.so.3` both times. A store
 shared over NFS holds whichever architecture was installed last, and the other
 one gets `Exec format error` from the kernel with nothing to explain it.
 
-Give the platform a place in the path (bottle v0.60.0):
+Give the platform a place in the path (artifact v0.60.0):
 
 ```sh
 ZPKG_DIR=/shared/zpkgx/{platform}     # one tree per architecture, one NFS export
