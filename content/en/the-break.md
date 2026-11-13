@@ -5,7 +5,7 @@ weight: 16
 
 # The break {#the-break}
 
-[Filiation]({{< relref "filiation.md" >}}) says what go-zpkg inherits from
+[Bibliography]({{< relref "filiation.md" >}}) says what go-zpkg took from
 [pkgx](https://pkgx.sh) and what pkgx cannot do by design. This page is the
 other half: the inherited things we **removed**, each with the defect that
 made removing it the cheaper option.

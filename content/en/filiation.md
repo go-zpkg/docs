@@ -1,21 +1,28 @@
 ---
-title: "Filiation: pkgx, and what pkgx cannot be"
+title: "Bibliography: what this was read from, and what each one could not give"
 weight: 15
 ---
 
-# Filiation {#filiation}
+# Bibliography {#filiation}
 
-go-zpkg descends from [pkgx](https://pkgx.sh). It reads pkgx's pantry, speaks
-pkgx's bottle protocol, and resolves pkgx's dependency ranges. Everything it
-installs is a pkgx package, and that is the point: the pantry is thousands of
-recipes that work, and nothing here would exist without them.
+go-zpkg is not a fork of anything. It was written from a **bibliography** —
+[pkgx](https://pkgx.sh), [Nix](https://nix.dev), [Guix](https://guix.gnu.org),
+[Spack](https://spack.readthedocs.io), Debian's `apt` and Red Hat's `rpm`,
+plus Homebrew, Gentoo and Arch where their answers were the sharpest. Each one
+was read for what it does well, and no single one of them is the parent.
 
-It is not a reimplementation of pkgx, and the difference is not a matter of
-ambition. Four things this needs are **unreachable from pkgx's design**, not
-missing from its implementation, and all four are ordinary in
-[Nix](https://nix.dev), [Guix](https://guix.gnu.org) and
-[Spack](https://spack.readthedocs.io). This page says which, and what each one
-costs.
+pkgx is the entry people assume is a parentage, so it is the one worth stating
+plainly: this project began by reading pkgx's format and still reads its
+pantry today, which is a **dependency being wound down**, not a lineage. It is
+not compatible with pkgx and does not try to be — the
+[break](../the-break/) page lists what was dropped and why.
+
+Four things this needs are unreachable from pkgx's design rather than missing
+from its implementation, and all four are ordinary in Nix, Guix and Spack.
+This page says which, and what each one costs. The same reading is what
+decided the digest-at-record-time rule (Guix's `guix refresh`), the rebuild
+counter (Homebrew's `rebuild`, Debian's `+bN`), the fingerprint requirement
+(Arch's `validpgpkeys`) and the concrete spec (Spack's).
 
 The honest summary: pkgx is excellent at *one build of each version*. Every
 difficulty below is a consequence of that one assumption, and it is an
@@ -158,11 +165,28 @@ left in the one place it does the most damage. Nothing is migrated: an
 existing `~/.pkgx` is as much pkgx's as ours, and `ZPKG_DIR=~/.pkgx` keeps
 using it for anyone who wants that.
 
-**Kept:** the pantry, the bottle format, the dependency grammar, the
-relocatable prefix, and the ability to re-read the pantry when recipes are
-added. The pantry's recipes are converted to HCL2 rather than forked, so
-re-reading it stays possible, and a fix made here can still be offered to the
-pkgx maintainers.
+**Kept, for now:** the bottle format, the dependency grammar, the relocatable
+prefix — and the pkgx pantry itself, which `PantryBase` still reads at resolve
+time with our own recipes merged over it.
+
+⛔ **That last one is a dependency being wound down, and the plan that used to
+be written here is superseded.** This page said the pantry's recipes were
+"converted to HCL2 rather than forked, so a periodic resync stays possible".
+That is no longer the decision. `pkgxdev/pantry` carries **no licence** — `git
+ls-files` over all 2453 of its files returns no `LICENSE` and no `COPYING`
+(go-zpkg/packages#431) — so there is no established basis on which to convert
+it at all. The sovereign pantry is **written, not converted**: each recipe
+from the project's *own* build files, with a `provenance` block naming them
+and a signature-verified digest (go-zpkg/packages#440).
+
+The distance is measured rather than asserted: `zbk lint --require-standalone`
+counts how many of our recipes resolve without the pantry underneath, and
+`--max-fragments N` is a ratchet that refuses both an increase **and** a
+ceiling nobody lowers.
+
+**Not kept:** compatibility. `package.yml` and the JSON Schema derived from
+libpkgx's parser are on the way out with the rest of it; `package.hcl` and its
+own schema are the format this project has.
 
 **Not claimed:** go-zpkg does not have Nix's or Guix's functional purity. But
 "not sandboxed" and "no time machine" are both vaguer than the code deserves,
@@ -219,12 +243,17 @@ Four things stand between that and `guix time machine`:
 (1) and (3) are bookkeeping. (2) is the one that decides whether any of it is
 true, and it is the next thing to build.
 
-## Where the filiation is visible in the code {#visible}
+## Where each source is visible in the code {#visible}
 
-| | |
-| --- | --- |
-| `bottle/pkgx.go` | pkgx's version grammar, constraints and bottle protocol |
-| `bottle/concrete.go` | the concrete spec and its hash — Spack's idea |
-| `bottle/storepath.go` | the store layout: pkgx's, with a hash where there is one |
-| `PantryBase` | the pkgx pantry, read directly |
-| `ZPKG_DIST` | the distribution, defaulting to the signed registry |
+Read as a bibliography: each line names what was taken and from where, which
+is also the list of what a sovereign tree still has to replace.
+
+| | | |
+| --- | --- | --- |
+| `bottle/pkgx.go` | the version grammar, constraints and bottle protocol | pkgx |
+| `bottle/concrete.go` | the concrete spec and its hash | Spack |
+| `bottle/storepath.go` | the store layout, with a hash where there is one | pkgx, plus Nix's reason for the hash |
+| `bottle/builds.go` | the rebuild counter `_N` | Homebrew's `rebuild`, Debian's `+bN` |
+| `zbk sourcepin` | the digest checked when it is RECORDED, not at every build | Guix's `guix refresh`; the mandatory fingerprint is Arch's `validpgpkeys` |
+| `PantryBase` | **the pkgx pantry, read directly — the dependency being wound down** | pkgx |
+| `ZPKG_DIST` | the distribution, defaulting to the signed registry | ours |
