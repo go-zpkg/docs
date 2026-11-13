@@ -12,7 +12,7 @@ one property that changes everything downstream.
 
 ## A wasip1 module is statically linked, so there is no closure
 
-On every other platform an artifact is a node in a dependency graph. `zpkgx` walks
+On every other platform an artifact is a node in a dependency graph. `zpkx` walks
 it, installs the transitive closure, and sets up the environment the dynamic
 loader needs — `DT_NEEDED` on ELF, `@rpath` on Mach-O.
 
@@ -44,7 +44,7 @@ Two consequences follow, and the second is a trap:
   ([go-zpkg/zpkb#376](https://github.com/go-zpkg/zpkb/issues/376), fixed.)
 
 - **`provides` is trustworthy again, and it is the half that mattered.** It is
-  what `zpkgx -Q <command>`, `zpkgs search` by command name and the `<TAB>` index
+  what `zpkx -Q <command>`, `zpks search` by command name and the `<TAB>` index
   are built from, so the same defect had sharper consequences there: in the
   catalogue of `2026-10-31T20:13Z`, `zlib.net` listed **no** command although
   its artifact ships `bin/minigzip.wasm` — `minigzip` was published, runnable and
@@ -95,12 +95,12 @@ The arguments come after the module with **no `--` separator**.
 The catalogue is published per platform, so ask for this one:
 
 ```sh
-zpkgs catalog update --platform wasip1/wasm
-zpkgs ls
-zpkgs ls --tree lua.org
+zpks catalog update --platform wasip1/wasm
+zpks ls
+zpks ls --tree lua.org
 ```
 
-As with every other platform, `zpkgs` reads the local catalogue and nothing else
+As with every other platform, `zpks` reads the local catalogue and nothing else
 — `<TAB>` completion included — so this works offline once the catalogue is
 fetched. See [Finding packages]({{< relref "finding-packages.md" >}}).
 

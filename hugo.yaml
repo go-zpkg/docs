@@ -84,4 +84,4 @@ params:
     width: normal
   editURL:
     enable: true
-    base: "https://github.com/go-zpkg/zpkgm/edit/main/content/en"
+    base: "https://github.com/go-zpkg/zpkm/edit/main/content/en"

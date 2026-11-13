@@ -17,7 +17,7 @@ Every platform — **linux/x86-64**, **linux/aarch64**, **darwin/aarch64**,
 
 - the **signed OCI registry** `ghcr.io/go-pkgx/packages` (each package carrying an
   SBOM, provenance and signature as OCI referrers), and
-- a **GitHub Pages zpkgx-dist mirror** at
+- a **GitHub Pages zpkx-dist mirror** at
   [`https://go-zpkg.github.io/packages`](https://go-zpkg.github.io/packages),
   carrying all platforms side by side (`<project>/<os>/<arch>/…`).
 
@@ -30,12 +30,12 @@ GitHub Actions workflows build each recipe with
 
 - **Factories:** `build.yml` (linux), `darwin.yml` (macOS), `windows.yml` (Go) +
   `windows-rust.yml` (Rust) + `windows-proof.yml` (e2e), each publishing to the OCI
-  registry and uploading a zpkgx dist tree; a single `pages.yml` aggregator unions
+  registry and uploading a zpkx dist tree; a single `pages.yml` aggregator unions
   the latest run of every build into the combined Pages mirror.
 - **`wasip1/wasm` (pilot):** `wasip1.yml` cross-builds pure-Go projects with
   `GOOS=wasip1 GOARCH=wasm CGO_ENABLED=0`, runs each module under wasmtime, then
   publishes it **to the OCI registry only** (no Pages mirror yet) with the OCI
-  platform `os=wasip1, architecture=wasm` (zpkgx slug `wasip1/wasm`). The module is
+  platform `os=wasip1, architecture=wasm` (zpkx slug `wasip1/wasm`). The module is
   `bin/<name>.wasm`; a recipe's `provides: bin/<name>` stays extension-free and
   `artifact.ResolveBinPath` finds the `.wasm`, as it finds `.exe` on Windows. Pilots:
   `filippo.io/age` 1.3.2, `github.com/cpuguy83/go-md2man` 2.0.7, `mvdan.cc/sh`
@@ -110,7 +110,7 @@ Debian's `+bN`, and it behaves the way those do:
 3.3.11 < 3.3.11_1 < 3.3.11_2 < 3.3.12
 ```
 
-A rebuild **supersedes**, so `zpkgx fftw.org` moves to it; a real version bump
+A rebuild **supersedes**, so `zpkx fftw.org` moves to it; a real version bump
 still dominates any number of rebuilds below it. Exact pins tell the two
 apart — `=3.3.11` does **not** match `3.3.11_1`, and the reverse — because a
 lock exists to say that nothing moved.
@@ -129,7 +129,7 @@ libpkgx's `SemVer` constructor (`src/utils/semver.ts:26-41`, read
 **Pointing a pkgx client at this registry is therefore unsupported
 once a project carries a rebuild.** That was weighed rather than overlooked:
 it throws rather than resolving the wrong artifact, which is the better of the
-two failures. `zpkgx`, `zpkgs` and `zpkgm` from this org read `_N` correctly.
+two failures. `zpkx`, `zpks` and `zpkm` from this org read `_N` correctly.
 
 The alternatives were rejected for reasons worth knowing if you are tempted
 by them. A fourth numeric component (`3.3.11.1`) parses in pkgx but cannot
@@ -233,16 +233,16 @@ exactly like a missing `libuct_ib.so`.
 Point the go-zpkg tools at the registry and verify against the pinned key:
 
 ```sh
-ZPKG_DIST=oci://ghcr.io/go-pkgx/packages ZPKG_VERIFY=1 zpkgm install lz4.org
+ZPKG_DIST=oci://ghcr.io/go-pkgx/packages ZPKG_VERIFY=1 zpkm install lz4.org
 ```
 
 `ZPKG_VERIFY=1` is fail-closed: an unsigned or badly-signed package is refused, not
 installed. See [supply chain]({{< relref "supply-chain.md" >}}) for the verification model.
 
-Or consume the same packages from the GitHub Pages zpkgx-dist mirror:
+Or consume the same packages from the GitHub Pages zpkx-dist mirror:
 
 ```sh
-ZPKG_DIST=https://go-zpkg.github.io/packages zpkgm install lz4.org
+ZPKG_DIST=https://go-zpkg.github.io/packages zpkm install lz4.org
 ```
 
 Packages are OCI artifacts, so any OCI client can also pull them directly:

@@ -343,7 +343,7 @@ build capacity on a version bump that changed nothing about any binary.
 
 The consequence has to be stated rather than glossed: **two factories building
 identical inputs produce the same identity**, so the hash cannot tell them
-apart and the provenance is the only thing that can. That is why `zpkgs
+apart and the provenance is the only thing that can. That is why `zpks
 builds` prints a **BUILT BY** column beside **SIGNED BY** — *what made this*
 and *who vouches for it* are different questions, and a listing that answered
 only the second would have thrown the first away.
@@ -390,7 +390,7 @@ not independently reproduce*.
 ```sh
 export ZPKG_EXTRA_TRUSTED_KEYS='alice:RWQ…'
 export ZPKG_TRUST_THRESHOLD=2
-zpkgm install lz4.org
+zpkm install lz4.org
 ```
 
 Nix requires one signature from one trusted key; Guix likewise checks a single
@@ -522,7 +522,7 @@ both hold one base64 line:
    `SigningPublicKey`. Release `artifact`; the clients pick it up on their next
    release.
 3. Set `ARTIFACT_SIGNING_KEY` to the new **secret** key.
-4. Publish one artifact and read it back from another machine — `zpkgs builds
+4. Publish one artifact and read it back from another machine — `zpks builds
    <project>@<version>` must show it signed by the new name.
 
 Nothing already published needs re-signing: the old key stays trusted
@@ -532,8 +532,8 @@ rebuilt — see above for why no date can spare you that.
 
 ## Verify on install {#verify-on-install}
 
-The [`go-zpkg/artifact`](https://github.com/go-zpkg/artifact) backend that both `zpkgx`
-and `zpkgm` import performs verification at install time:
+The [`go-zpkg/artifact`](https://github.com/go-zpkg/artifact) backend that both `zpkx`
+and `zpkm` import performs verification at install time:
 
 - every signature referrer on the artifact is collected, and the distinct trusted
   keys among them are counted against the threshold;
@@ -542,7 +542,7 @@ and `zpkgm` import performs verification at install time:
 
 ```sh
 # refuses to install anything the trust set cannot vouch for
-ZPKG_DIST=oci://ghcr.io/go-pkgx/packages ZPKG_VERIFY=1 zpkgm install lz4.org
+ZPKG_DIST=oci://ghcr.io/go-pkgx/packages ZPKG_VERIFY=1 zpkm install lz4.org
 ```
 
 Every path that brings bytes onto the machine goes through that check — not
@@ -590,10 +590,10 @@ into a file freezes while the population grows.
 
 The list is now derived. The index has always known which platforms exist — a
 platform that is not published is refused with `platform not in index` — and
-`zpkgs catalog platforms` asks it:
+`zpks catalog platforms` asks it:
 
 ```sh
-zpkgs catalog platforms          # one per line, ready for --platform
+zpks catalog platforms          # one per line, ready for --platform
 go run ./vulnsweep -pantry pantry -advisories advisories -store "$ZPKG_DIR"
 ```
 
@@ -791,11 +791,11 @@ and 3.1 as well — of which **seven are end-of-life** and two supported:
 | **4.0** | **supported to 2027-05-14** |
 
 A gate that reports a problem on the day it arrives has still left everyone on
-the abandoned line, so since zpkgx v0.30.0 the **resolver** acts on the
+the abandoned line, so since zpkx v0.30.0 the **resolver** acts on the
 verdict:
 
 ```console
-$ zpkgx --graph --platform linux/x86-64 +openssl.org@^3
+$ zpkx --graph --platform linux/x86-64 +openssl.org@^3
 openssl.org 3.5.8
 ```
 
@@ -804,7 +804,7 @@ still resolve to 3.6.4 — nothing supported satisfies them — and say so on
 stderr:
 
 ```text
-zpkgx: openssl.org 3.6.4 is on end-of-life release line 3.6 and nothing
+zpkx: openssl.org 3.6.4 is on end-of-life release line 3.6 and nothing
       supported satisfies "=3.6.4"; using it
 ```
 
@@ -833,7 +833,7 @@ that looks like it worked.
 
 The build side is not there yet. `zpkb` resolves build-time dependencies through
 the same resolver and does not carry the list, so the factory still builds
-against 3.6.4 what zpkgx now runs against 3.5.8 (go-zpkg/zpkb#378). The list also
+against 3.6.4 what zpkx now runs against 3.5.8 (go-zpkg/zpkb#378). The list also
 still lives in the binary rather than in the signed catalogue, where it would
 be computed instead of committed (go-zpkg/artifact#179).
 
@@ -866,14 +866,14 @@ whatever registry `ZPKG_DIST` points at.
 Measured, with a crafted lock:
 
 ```console
-$ zpkgx --lock esc.lock.hcl true | cat -v
-zpkgx: no version of zlib.net satisfies "=1.3.2\x1b[2K\r…" (available: 2);
+$ zpkx --lock esc.lock.hcl true | cat -v
+zpkx: no version of zlib.net satisfies "=1.3.2\x1b[2K\r…" (available: 2);
   asked for by =1.3.2^[[2K^Mzlib.net  1.9.9  ✓ verified (requested)
 ```
 
 `ESC[2K` erases the line and `\r` returns the cursor, so on a terminal that line
 rubs itself out and reprints as something reassuring. The same hole was in the
-catalogue, where `zpkgs ls` printed versions straight through.
+catalogue, where `zpks ls` printed versions straight through.
 
 Three treatments, and which one applies depends on **what the field is** and
 **who writes it**:
@@ -883,7 +883,7 @@ Three treatments, and which one applies depends on **what the field is** and
 | project name | the whole file is **refused** | a name becomes a URL and a path; a bad one means somebody wanted something |
 | summary, provides | **cleaned and shown** | cosmetic — refusing a catalogue over one paragraph would deny service for a typo |
 | version, platform **in a lock** | the whole file is **refused** | exactness is the entire point of a lock |
-| version, platform **in a catalogue** | that entry is **dropped**, the file is kept, and the count is printed | these come from a pantry recipe's `versions:`, so refusing would hand any recipe author a switch that turns off `zpkgs ls`, `search` and every `<TAB>` for everyone |
+| version, platform **in a catalogue** | that entry is **dropped**, the file is kept, and the count is printed | these come from a pantry recipe's `versions:`, so refusing would hand any recipe author a switch that turns off `zpks ls`, `search` and every `<TAB>` for everyone |
 | a tag from the registry | skipped | a registry is a configured endpoint |
 
 A **key** can never be cleaned the way a caption is: a cleaned key would select
@@ -891,7 +891,7 @@ something other than what it says. So it is refused or dropped, never silently
 repaired.
 
 ```console
-$ zpkgs catalog
+$ zpks catalog
 ~/.zpkg/catalog/darwin-aarch64.json
 1908 project(s), 956 with dependencies, 2 hour(s) old
 ```

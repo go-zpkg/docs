@@ -6,27 +6,27 @@ weight: 30
 # Environments, and HPC {#environments-and-hpc}
 
 A module system does two things: it resolves what a package needs, and it edits
-your shell. `zpkgx +a +b` already did the first. `zpkge` does the second — a
-front-end shaped like Lmod's, over zpkgx's own resolution, with no Lua
+your shell. `zpkx +a +b` already did the first. `zpke` does the second — a
+front-end shaped like Lmod's, over zpkx's own resolution, with no Lua
 interpreter and no modulefile tree.
 
-It ships in the `zpkgx` binary; there is nothing else to install.
+It ships in the `zpkx` binary; there is nothing else to install.
 
 ```console
-$ eval "$(zpkgs env init)"          # in a profile
-$ zpkge load stedolan.github.io/jq
+$ eval "$(zpks env init)"          # in a profile
+$ zpke load stedolan.github.io/jq
 $ command -v jq
 ~/.zpkg/stedolan.github.io/jq/v1.8.2/bin/jq
-$ zpkge list
+$ zpke list
 stedolan.github.io/jq
-$ zpkge unload stedolan.github.io/jq
+$ zpke unload stedolan.github.io/jq
 $ command -v jq
 /usr/bin/jq                        # back, exactly as it was
 ```
 
-`zpkge save <name>` writes the current set to
-`$ZPKG_DIR/collections/<name>`; `zpkge restore <name>` purges and reloads it.
-`zpkge purge` unloads everything.
+`zpke save <name>` writes the current set to
+`$ZPKG_DIR/collections/<name>`; `zpke restore <name>` purges and reloads it.
+`zpke purge` unloads everything.
 
 ## Why unloading is exact {#why-unloading-is-exact}
 
@@ -36,17 +36,17 @@ precisely what `load a c` would have — independent of the order things were
 loaded in.
 
 The state that makes this work lives in the environment, not in the shell, and
-is read back by `zpkgx`:
+is read back by `zpkx`:
 
 - `ZPKGE_SPECS` — the package set currently loaded.
-- `ZPKGE_BASE` — the *original* value of every variable zpkgx has touched,
+- `ZPKGE_BASE` — the *original* value of every variable zpkx has touched,
   base64 of NUL-separated `NAME=value` records.
 
 The names carry the `Z`. A shell function written before the rename exports the
-unprefixed pair instead, which this `zpkgx` does **not** read — it detects that
+unprefixed pair instead, which this `zpkx` does **not** read — it detects that
 case and names both spellings in the error, rather than treating a loaded
 environment as an empty one, because a wrong unload is worse than a refusal.
-Re-run `eval "$(zpkgs env init)"` to replace the function.
+Re-run `eval "$(zpks env init)"` to replace the function.
 
 A variable's base is captured once, the first time something touches it: the
 second load must not record the first load's output as the pristine value. A
@@ -78,11 +78,11 @@ An `env` block takes `description`, `packages`, and the environment edits
 `prepend_path`, `append_path`, `setenv` and `unsetenv`.
 
 ```console
-$ zpkgs env avail
+$ zpks env avail
 cfd                      the solver stack, as validated on 2026-09-01
 hdf5                     HDF5 1.14.3
 
-$ zpkgs env show cfd
+$ zpks env show cfd
 env "cfd"
   description  the solver stack, as validated on 2026-09-01
   declared in  /home/you/.zpkg/environments/site.hcl2
@@ -90,7 +90,7 @@ env "cfd"
   package      hdf5.org
   package      python.org@3.12
 
-$ zpkge load cfd
+$ zpke load cfd
 ```
 
 An environment is not a lockfile: it names constraints, and the closure is
@@ -104,15 +104,15 @@ Generate modulefiles and let the site's own Lmod load them. Nothing about
 Lmod is still the one doing the work.
 
 ```console
-$ zpkgx --modulefile +openmpi.org@5 > $MODULEPATH_DIR/openmpi/5.0.8.lua
+$ zpkx --modulefile +openmpi.org@5 > $MODULEPATH_DIR/openmpi/5.0.8.lua
 ```
 
-`zpkgx --json +<pkg>...` emits the same composed environment as data, for a tool
+`zpkx --json +<pkg>...` emits the same composed environment as data, for a tool
 that wants to compose it some other way.
 
 ## Without one {#without-one}
 
-`zpkgs env init --module` also defines `module` and `ml`
+`zpks env init --module` also defines `module` and `ml`
 (`load`/`add`, `unload`/`rm`/`del`, `purge`, `list`, `avail`/`av`,
 `show`/`display`/`whatis`, `save`, `restore`, `swap`/`switch`) — for a
 container, a laptop, or a cluster built on this toolchain.
@@ -120,8 +120,8 @@ container, a laptop, or a cluster built on this toolchain.
 It **refuses** to install itself where an Lmod already exists:
 
 ```
-zpkgx: an existing module system was found; not defining module().
-zpkgx: publish modulefiles to MODULEPATH instead: zpkgx --modulefile +pkg
+zpkx: an existing module system was found; not defining module().
+zpkx: publish modulefiles to MODULEPATH instead: zpkx --modulefile +pkg
 ```
 
 Two implementations answering one command is how a support ticket becomes
@@ -129,12 +129,12 @@ unanswerable, and the site's own modulefiles are not ours to interpret.
 
 ## Converting a site's modulefiles {#converting-a-sites-modulefiles}
 
-`zpkgs env import` reads Lmod's Lua **and** Environment Modules' TCL, and writes
+`zpks env import` reads Lmod's Lua **and** Environment Modules' TCL, and writes
 both into the same HCL2.
 
 ```console
-$ zpkgs env import /opt/modulefiles/hdf5
-# imported from /opt/modulefiles/hdf5 by `zpkgs env import`.
+$ zpks env import /opt/modulefiles/hdf5
+# imported from /opt/modulefiles/hdf5 by `zpks env import`.
 # Every statement in that file was recognised; nothing was skipped.
 env "hdf5" {
   description = "HDF5 1.14.3"
@@ -156,7 +156,7 @@ matters — **writes nothing at all** if any file was refused, because a partial
 conversion is the one outcome nobody can check.
 
 ```console
-$ zpkgs env import /opt/modulefiles/openmpi.lua /opt/modulefiles/hdf5
+$ zpks env import /opt/modulefiles/openmpi.lua /opt/modulefiles/hdf5
 /opt/modulefiles/openmpi.lua: 3 statement(s) this converter will not guess at:
   line 3: not a plain call: this converter reads statements, it does not run Lua
     local root = "/opt/openmpi/5.0.8"
@@ -164,7 +164,7 @@ $ zpkgs env import /opt/modulefiles/openmpi.lua /opt/modulefiles/hdf5
     prepend_path("PATH", pathJoin(root, "bin"))
   line 5: depends_on states a RELATIONSHIP between modules, not an environment change: decide it in the environment that replaces this one
     depends_on("hwloc")
-zpkgs: 1 of 2 modulefile(s) not converted — nothing written, because a PARTIAL conversion is the one outcome nobody can check
+zpks: 1 of 2 modulefile(s) not converted — nothing written, because a PARTIAL conversion is the one outcome nobody can check
 $ echo $?
 1
 ```
@@ -195,13 +195,13 @@ one gets `Exec format error` from the kernel with nothing to explain it.
 Give the platform a place in the path (artifact v0.60.0):
 
 ```sh
-ZPKG_DIR=/shared/zpkgx/{platform}     # one tree per architecture, one NFS export
-ZPKG_DIR=/shared/zpkgx/{os}/{arch}    # the same, split
+ZPKG_DIR=/shared/zpkx/{platform}     # one tree per architecture, one NFS export
+ZPKG_DIR=/shared/zpkx/{os}/{arch}    # the same, split
 ```
 
 `{platform}`, `{os}` and `{arch}` expand for the **running** machine, which is
 the point: the same exported string has to mean a different directory on each
-node. ⛔ **Braces, not `$`** — the shell would expand `$PLATFORM` before zpkgx
+node. ⛔ **Braces, not `$`** — the shell would expand `$PLATFORM` before zpkx
 ever saw it, and a value the shell has already eaten cannot resolve per node. A
 path with no placeholder is used unchanged, so existing stores are untouched.
 
@@ -215,17 +215,17 @@ agreement — the question closes the first time somebody installs into it.
 environment."* So this is the wrong shape on a heterogeneous cluster —
 
 ```sh
-zpkgx +hwloc +gnu.org/bash          # resolves for the HEAD
+zpkx +hwloc +gnu.org/bash          # resolves for the HEAD
 srun ./job.sh                      # …and that PATH lands on the node
 ```
 
 — because the PATH names the head's binaries. Resolve **on** the node instead:
 
 ```sh
-srun zpkgx +hwloc +gnu.org/bash -- ./job.sh
+srun zpkx +hwloc +gnu.org/bash -- ./job.sh
 ```
 
-`zpkgx` itself must then exist for the node's architecture, at a path the node
+`zpkx` itself must then exist for the node's architecture, at a path the node
 can reach. With `{platform}` in `ZPKG_DIR`, one export serves every node and
 each resolves its own tree.
 

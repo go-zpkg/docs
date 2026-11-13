@@ -21,14 +21,14 @@ registry  ghcr.io/…/fftw.org:3.3.11-h7k2mq4xvbnd3rf5c
 {{< callout type="info" >}}
 **What ships today.** The identity, the hashed store prefix, the hashed
 registry tag and the spec annotation are in `zpkb` v0.63.0 and `artifact`
-v0.81.0, and `zpkb factory` publishes with them. `zpkgs builds` is in `zpkgx`
+v0.81.0, and `zpkb factory` publishes with them. `zpks builds` is in `zpkx`
 v0.36.0 and runs now.
 
 **What does not.** Naming a build with `@version/<hash>` is **refused** by the
 resolver rather than honoured: carrying the hash down to the store is
-[zpkgx#142](https://github.com/go-zpkg/zpkgx/issues/142). Running *some* build
+[zpkx#142](https://github.com/go-zpkg/zpkx/issues/142). Running *some* build
 of a version under a name that says you chose one would be worse than saying
-no, so it says no and points at `zpkgs builds`.
+no, so it says no and points at `zpks builds`.
 
 And until the registry is rebuilt with hashed tags, every published artifact
 answers `nothing recorded` — which is the truth about the registry as it
@@ -98,7 +98,7 @@ which: a variant hash is not a version, so there is no newest one to pick
 That refusal is only half a design without a way to answer it:
 
 ```console
-$ zpkgs builds fftw.org@3.3.11
+$ zpks builds fftw.org@3.3.11
 HASH              INSTALLED  PUBLISHED  SIGNED BY        WHAT
 27o3ysxva6swayci  -          yes        go-zpkg          ⚠ withdrawn: CVE-2026-1234 → rnp44i · go.dev 1.27.3/aaaaaa
 rnp44isdgdtzxcit  -          yes        go-zpkg, alice   go.dev 1.27.4/bbbbbb

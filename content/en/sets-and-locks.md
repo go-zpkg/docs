@@ -53,7 +53,7 @@ different package set, so a manifest needs the channel revisions beside it.
 
 **And it matters more here than in Guix.** A Guix manifest resolves
 deterministically once the channel revision is pinned, because the version is
-*in* the checkout. A zpkgx recipe's `versions:` asks GitHub for tags **at
+*in* the checkout. A zpkx recipe's `versions:` asks GitHub for tags **at
 resolve time**, so pinning the pantry commit is not enough: the same pantry
 resolves `gnu.org/binutils` to whatever the newest tag is the day you ask.
 
@@ -140,11 +140,11 @@ the file asks.
 ## Installing a lock {#installing-a-lock}
 
 A lock that can be checked and built but not **installed** is a record of a
-build rather than a way to repeat it. `zpkgm install --lock` is the consumer
+build rather than a way to repeat it. `zpkm install --lock` is the consumer
 end:
 
 ```console
-$ zpkgm install --lock seed.lock.hcl
+$ zpkm install --lock seed.lock.hcl
   installed acme.org/tool v1.0.0
   installed zlib.net v1.3.2
 linked 2 binaries → /usr/local/bin
