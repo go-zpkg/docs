@@ -25,7 +25,7 @@ Every platform — **linux/x86-64**, **linux/aarch64**, **darwin/aarch64**,
 
 The [`go-zpkg/packages`](https://github.com/go-zpkg/packages) repo is the factory.
 GitHub Actions workflows build each recipe with
-[`zpkb`](https://github.com/go-zpkg/zpkb) — the CGO-free re-implementation of brewkit
+[`zpkb`](https://github.com/go-zpkg/zpkb) — our CGO-free recipe build tool
 — and publish the result to both channels.
 
 - **Factories:** `build.yml` (linux), `darwin.yml` (macOS), `windows.yml` (Go) +
@@ -40,8 +40,12 @@ GitHub Actions workflows build each recipe with
   `artifact.ResolveBinPath` finds the `.wasm`, as it finds `.exe` on Windows. Pilots:
   `filippo.io/age` 1.3.2, `github.com/cpuguy83/go-md2man` 2.0.7, `mvdan.cc/sh`
   (`shfmt`) 3.14.1. The build side is `zpkb`'s `wasip1/wasm` target
-  (`BREWKIT_TARGET=wasip1/wasm`, triple `wasm32-wasip1`; `wasm` is an architecture
-  of `wasip1` only).
+  (`ZPKB_TARGET=wasip1/wasm`, triple `wasm32-wasip1`; `wasm` is an architecture
+  of `wasip1` only). ⚠ This said `BREWKIT_TARGET` until 2026-11-15, which
+  `zpkb` has not read since the rename: `target.go` refuses to keep an alias,
+  because upstream's brewkit can sit on the same `PATH` and a variable read by
+  both would be the collision the rename removed. Setting the old name did
+  nothing, silently.
 - **`wasip1/wasm` C tools:** `wasip1-c.yml` builds C with our own toolchain, not a
   prebuilt wasi-sdk: the `llvm.org` artifact (clang, wasm-ld, llvm-ar) plus two cross
   parts built from source in the pantry overlay, following wasi-sdk's
