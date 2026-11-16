@@ -101,6 +101,66 @@ the **parsed** recipe and the spec hashes of its dependencies. Over the parsed
 value and not the file, so reformatting a recipe or rewriting its comments does
 not move it and changing what it says does.
 
+## A bound that is not the same for every version {#a-bound-that-is-not-the-same-for-every-version}
+
+A recipe resolves many versions and states one `dependencies` block, so every
+bound in it has to satisfy all of them at once. In practice that means the most
+restrictive requirement of the **oldest** resolvable version — which the newest
+then pays for forever, because nothing re-measures a bound once it is written.
+Measured over the upstream pantry:
+
+| recipe | bound | versions excluded | stated reason |
+| --- | --- | --- | --- |
+| `llvm.org` | `cmake.org: '>=3<3.29'` | **69 of 71** | *"doesn't **seem** to install a bunch of the libs"* |
+| `llvm.org` | `python.org: '>=3<3.12'` | **50** | none |
+| `perl.org` | `llvm.org: <19` | **41** | none |
+
+LLVM contradicts the second one itself. `llvm/CMakeLists.txt` sets
+`LLVM_MINIMUM_PYTHON_VERSION 3.8` and calls `find_package(Python3 3.8
+REQUIRED)`: a floor and **no ceiling**. The bound plausibly belonged to a
+`distutils`-era llvm, which python 3.12 removed — correct for llvm ≤ 17, wrong
+for llvm 23, and the recipe had no way to say both.
+
+A dependency-map key carrying a version operator scopes its sub-map to **the
+package's own version**:
+
+```hcl
+build {
+  dependencies = {
+    "python.org" = ">=3"
+
+    # distutils, removed in python 3.12, is what the old ceiling was about
+    "<18" = { "python.org" = ">=3<3.12" }
+  }
+}
+```
+
+**No new syntax was needed, and that is the whole argument.** A project name
+admits only `[A-Za-z0-9._+-]` segments, so a key carrying any of
+`< > = ^ ~ *` **cannot** be a project or a platform. The discriminator is the
+recipe format's own grammar rather than a second one invented beside it, which
+is why it cannot drift from what the format accepts. The predicate grammar is
+the one `if:` conditions already use on script steps, so a recipe has one way
+to say "at these versions".
+
+A bare `5.40` **is** a legal project name, so it reads as a project. A scope
+must carry an operator: write `=5.40`.
+
+### Two answers, because the callers ask different questions {#two-answers}
+
+A build knows which version it is building and gets the exact reduction. But
+`closure`, `catalog`, `depgaps` and the spec hash above walk a recipe set
+asking *"what does this project depend on?"* **before** any version is
+resolved — and for them a scoped dependency has one answer per version.
+
+So an unknown version **unions** the scopes and lets the stricter constraint
+win. The two failures are not symmetric, which is what decides the direction: a
+closure that over-constrains fails loudly at resolution — *"no version of X
+satisfies A and B"* — while one that under-constrains resolves cleanly and
+ships an artifact linked against something the recipe never asked for. Same
+reasoning as the `sha256`/`spec` split above: the loud wrong answer is worth
+more than the quiet one.
+
 ## Checking a lock later {#checking-a-lock-later}
 
 Cargo's `--locked` and npm's `ci` exist because a lock nobody verifies is a
