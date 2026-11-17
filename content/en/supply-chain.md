@@ -263,7 +263,7 @@ today.
 
 ### The first recipe that carries one {#the-first-recipe-that-carries-one}
 
-`gnu.org/gzip` in `go-zpkg/pantry-overlay` is the fourth whole recipe of the
+`gnu.org/gzip` in `go-zpkg/recipes` is the fourth whole recipe of the
 sovereign pantry and the first whose digest is vouched for. Its `provenance`
 block records both limits on the warrant, because every other distribution's
 documentation is silent on them:
