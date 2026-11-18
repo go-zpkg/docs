@@ -42,6 +42,39 @@ The platform, the resolved closure — every dependency at the exact version
 
 Three consequences follow, and they are the reason it is built this way.
 
+**The platform can name the C library, and on linux that is part of the
+identity rather than a dependency.** `linux/x86-64` is one platform and
+`linux-musl/x86-64` is another: the annotation says `"platform":
+"linux-musl/x86-64"`, the artifact lands under a different directory, and the
+two hash differently.
+
+It sits here, and not in a recipe, because every object in a closure has to
+agree on it — a bottle built against musl cannot be loaded beside one built
+against glibc. Modelling the libc as a dependency to be solved per edge, as
+Spack's virtual providers do, suits a builder that compiles from source per
+site. We publish bottles, so a mixed closure is not a resolution error to
+report: it is an artifact that cannot exist, and putting the libc in the
+platform makes it unrepresentable instead of merely refused. It is why Rust
+ships `x86_64-unknown-linux-musl` beside `x86_64-unknown-linux-gnu`, and why
+Alpine is not Debian with a different package.
+
+No recipe names a libc, and none should. The target says it:
+`ZPKB_TARGET=linux-musl/x86-64`.
+
+{{< callout type="warning" >}}
+**An unnamed libc is not a default — it means *unrecorded*.** `linux/x86-64`
+is exactly what it has always been, byte for byte, so no published artifact
+changed identity and no lock file was invalidated. `zpkb` does **not** fill in
+`gnu` when nothing asked for a libc, because nothing in it looks at the host's
+C library: answering `gnu` would label a bottle with an ABI that was never
+checked, which is worse than leaving the field empty.
+
+`bionic` is refused rather than accepted-and-broken. Android's libc is
+reachable only through the NDK's toolchain and sysroot, so it is a
+cross-compilation target rather than a libc that can be swapped under a native
+build.
+{{< /callout >}}
+
 **It is a function of the inputs, never of the output.** The prefix is baked
 into every binary the build produces, so it has to be known before a compiler
 runs. Hashing the result into the result is circular. Nix hashes the

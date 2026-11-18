@@ -19,7 +19,12 @@ Every platform — **linux/x86-64**, **linux/aarch64**, **darwin/aarch64**,
   SBOM, provenance and signature as OCI referrers), and
 - a **GitHub Pages zpkx-dist mirror** at
   [`https://go-zpkg.github.io/packages`](https://go-zpkg.github.io/packages),
-  carrying all platforms side by side (`<project>/<os>/<arch>/…`).
+  carrying all platforms side by side (`<project>/<os>/<arch>/…`). ⚠ The
+  `<os>` component carries the **C library** when the target named one —
+  `linux-musl` beside `linux` — because two bottles of the same project and
+  version built against different libcs are not interchangeable and must not
+  share a path. See
+  [Addressing a build]({{< relref "addressing-a-build.md" >}}#what-the-hash-is-of).
 
 ## The factory {#the-factory}
 
@@ -41,7 +46,8 @@ GitHub Actions workflows build each recipe with
   `filippo.io/age` 1.3.2, `github.com/cpuguy83/go-md2man` 2.0.7, `mvdan.cc/sh`
   (`shfmt`) 3.14.1. The build side is `zpkb`'s `wasip1/wasm` target
   (`ZPKB_TARGET=wasip1/wasm`, triple `wasm32-wasip1`; `wasm` is an architecture
-  of `wasip1` only). ⚠ This said `BREWKIT_TARGET` until 2026-11-15, which
+  of `wasip1` only — and a linux target may also name its C library,
+  `ZPKB_TARGET=linux-musl/x86-64`). ⚠ This said `BREWKIT_TARGET` until 2026-11-15, which
   `zpkb` has not read since the rename: `target.go` refuses to keep an alias,
   because upstream's brewkit can sit on the same `PATH` and a variable read by
   both would be the collision the rename removed. Setting the old name did
