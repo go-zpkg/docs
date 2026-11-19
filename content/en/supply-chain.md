@@ -328,6 +328,45 @@ it **covers**: `linux-7.2.15.tar.xz.asc` 404, `.tar.xz.sig` 404, `.tar.xz.sign`
 404, `linux-7.2.15.tar.sign` **200**. In this mode it strips the compression
 suffix first.
 
+### ⛔⛔ And a third cause behind the same sentence, which is why the sentence had to go {#a-refusal-names-the-cause-it-met}
+
+*"A good signature our verifier cannot read"* now covers **three unrelated
+defects** in this pantry: the clock, the bytes, and this one. A phrase that
+designates three causes is a symptom, and it had been standing in for a
+diagnosis — including once in a merged pull request body, where it was asserted
+of the wrong one.
+
+So the refusal stopped being one sentence. Every refused signature used to end
+*"what failed is **WHO** signed them, so do not pin this until you know why"* —
+wrong whenever the key is present and fine, and it sends the reader to audit a
+keyring that is not the problem. The three states are now separated by reading
+the signature's issuer against the keyring:
+
+| state | what the refusal says |
+| --- | --- |
+| no key has that id | says so, and **names the id** it looked for — the thing you grep the keyring for |
+| the key is there but cannot sign | names *that*, with the **self-signature's** date, and that `gpg` disagrees |
+| the key is there and may sign | the bytes or the cryptography — and only here does `--sig-covers` mean anything |
+
+⭐ **The third cause itself is worth knowing, because it is not a weak
+algorithm.** `gnu.org/help2man` 1.49.3 is signed by a key whose self-signature
+was made in **2001** and carries no key-flags subpacket at all, so nothing in
+the key states that it may sign data. `openpgp/keys.go:343` skips it, the
+candidate list empties, and the caller is told the issuer is unknown. Measured
+against the real 3 700 423-byte GNU keyring and the real 95-byte signature:
+`KeysById` **1**, `KeysByIdUsage(KeyFlagSign)` **0**, and `VerifySignature` by
+hand **nil** — the signature is good. **A key older than the flag.**
+
+⚠ And nothing was relaxed, because the spec was read before anything was
+changed. Treating a flagless key as sign-capable is what `gpg` does and it
+would make that signature verify — patching the one field proves it — but RFC
+9580 §5.2.3.29 does not say what an absent subpacket implies, and its nearest
+statement goes the other way: *"If a list is shorter than an implementation
+expects, the unstated flags are considered to be zero."* So the conservative
+reading stands, and the open question is now narrower and better posed: not
+*"how much is a SHA-1 signature worth"* but **"does this pantry pin on a key
+whose self-signature predates key flags?"**
+
 ### The first recipe that carries one {#the-first-recipe-that-carries-one}
 
 `gnu.org/gzip` in `go-zpkg/recipes` is the fourth whole recipe of the
