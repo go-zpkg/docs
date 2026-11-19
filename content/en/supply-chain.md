@@ -261,6 +261,73 @@ it is what the build checks — but a recipe pinned before v0.73.0 carries a
 digest nobody verified a signature for, and nothing distinguishes the two
 today.
 
+### ⛔⛔ And then two more, which is the pattern rather than the exception {#two-more-from-real-projects}
+
+Both were found the same way as the three above — by pinning a real tarball —
+and both have the same shape: **a good signature, by the key the author named,
+refused.** A verifier that refuses what `gpg --verify` accepts does not fail
+loudly enough to be noticed, because its refusal looks exactly like the one it
+is *for*. In both cases the author's next move was to audit the key, and in
+both cases the key was fine.
+
+**The key's expiry was judged at the wrong instant.** `sourcepin` asked whether
+the signing key is valid *now*; the question is whether it was valid **when it
+signed**. GNU maintainers let keys lapse routinely, and a warrant issued in
+2024 by a key that was valid in 2024 does not stop being one because the key
+lapsed in 2025. Three real signatures were refused where `gpg --verify` exits 0
+with `Good signature` and a *note* about the expiry: `gnu.org/wget` 1.25.0,
+and `x.org/libX11` 1.8.14, signed by Alan Coopersmith — which is what sent it
+to be fixed rather than worked around. The clock now comes from the signature,
+and a signature dated in the **future** is refused outright with an hour of
+slack for skew, because that is the one claim a signature's own clock cannot be
+trusted for.
+
+⚠ The weakening is real and bounded, so it is stated rather than buried: the
+creation time comes from the signature, which an attacker writes, so somebody
+holding a lapsed *private* key could backdate a forgery past the expiry check.
+What that buys them is nothing this check defended — the key is still theirs,
+the fingerprint is still compared against the one the author published, and
+**expiry has never been revocation.** A revoked key is refused at any clock.
+`gpg` draws the line in the same place, and the alternative is a verifier that
+degrades into "cannot check" as keys age, which is how it stops being able to
+re-check the pantry at all.
+
+**The signature did not cover the bytes being hashed.** kernel.org signs the
+**uncompressed** tar, and its own `signature.html` says why:
+
+> You will notice that the signature is made against the uncompressed version of
+> the archive. This is done so there is only one signature required for .gz and
+> .xz compressed versions of the release.
+
+Every `.sign` file repeats it in the armour header — `Comment: This signature is
+for the .tar version of the archive`. A recipe's `distributable.url` names the
+`.tar.xz`, so the verifier was handed bytes the signature never covered.
+`--sig-covers served|decompressed` says which. Measured against
+`cdn.kernel.org`, same command one flag apart:
+
+| | `--sig-covers served` | `--sig-covers decompressed` |
+| --- | --- | --- |
+| verdict | `openpgp: invalid signature: RSA verification failure` | **GOOD** |
+| signer | — | `647F28654894E3BD457199BE38DBBDC86092693E` |
+
+⭐ **The digest pinned is still the compressed file's**, because that is what a
+build downloads: one operation over two byte streams. The `provenance` block
+records which stream was checked, since the digest and the warrant no longer
+describe the same bytes and neither value reveals that on its own.
+
+⛔ It is a flag and **not** a fallback. Retrying the other stream whenever the
+first fails would make *"it verified the other way"* indistinguishable from
+*"somebody signed a different archive"*, and the entire value of this check is
+that a refusal means something. A misspelt value is a usage error rather than a
+silent return to the default, which would verify the served bytes and then
+print a pin claiming it checked the other ones.
+
+⚠ And `--sig auto` could not have found that signature in principle. It appends
+to the archive's URL, and a signature is published under the name of the bytes
+it **covers**: `linux-7.2.15.tar.xz.asc` 404, `.tar.xz.sig` 404, `.tar.xz.sign`
+404, `linux-7.2.15.tar.sign` **200**. In this mode it strips the compression
+suffix first.
+
 ### The first recipe that carries one {#the-first-recipe-that-carries-one}
 
 `gnu.org/gzip` in `go-zpkg/recipes` is the fourth whole recipe of the
