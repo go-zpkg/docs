@@ -162,7 +162,8 @@ so a library found beside the binary is found beside it anywhere. The entry can
 be rewritten in place, because the replacement is shorter than what it replaces.
 
 The same in-place edits are available as a standalone tool,
-[`go-zpkg/elfpatch`](https://github.com/go-zpkg/elfpatch) (v0.1.0). It is pure
+[`go-binfmt/elfpatch`](https://github.com/go-binfmt/elfpatch) (v0.2.0), in
+go-binfmt, the organisation for binary-format tooling. It is pure
 Go and uses patchelf's flag names: `--print-rpath`, `--set-rpath`,
 `--set-interpreter`, `--remove-needed`, `--replace-needed`, `--shrink-rpath`.
 It adds three things patchelf does not do:
