@@ -367,6 +367,61 @@ reading stands, and the open question is now narrower and better posed: not
 *"how much is a SHA-1 signature worth"* but **"does this pantry pin on a key
 whose self-signature predates key flags?"**
 
+### ⛔⛔ And two more from one recipe, `gnu.org/libidn2` {#two-more-from-libidn2}
+
+`gnu.org/libidn2` 2.3.8 is signed by Simon Josefsson, and his key is in the GNU
+keyring. `sourcepin` still could not verify the signature, for two separate
+reasons. Each one is now fixed in `zpkb`.
+
+**The key was past the point where the keyring walk stopped.** The rescue
+described above (*"only that key is assembled and the rest is never touched"*)
+was not quite true. The walk still parsed every entity *before* the named one,
+so it stopped at the first entity it could not parse. On the GNU keyring that
+happened after **402** primary keys, while `gpg` reads **614**. The signer's
+key was further in. Since zpkb v0.88.0 (go-zpkg/zpkb#511) the walk reads each
+packet's length from its header (RFC 9580 §4.2) and steps over the packets it
+does not need. Only the named key's packets are parsed. libidn2's key was found
+after 556 primary keys.
+
+**The key was refreshed after it signed.** The previous section moved the clock
+to the instant the signature was made. But `go-crypto` checks the key's own
+self-signatures at that same instant, and it treats a self-signature made
+*after* that instant as expired (`packet/signature.go:762-765`). A keyring
+holds a key's **current** self-signatures. Maintainers refresh them routinely,
+for example to extend an expiry date. After a refresh, every release signed
+before it is refused. libidn2 was signed on 2025-03-08, and the key's user-ID
+self-signature is dated 2026-04-17.
+
+Since zpkb v0.89.0 (go-zpkg/zpkb#513), the clock is **the later of** the
+signature's own instant and the key's newest relevant self-signature:
+
+- the refresh's instant is capped at the present, so a self-signature dated in
+  the future cannot move the clock;
+- the clock is never earlier than the signature's own instant;
+- with no refresh, the clock is exactly what it was before.
+
+`sourcepin` prints both instants when they differ, so the output no longer
+claims that expiry was judged at the signing instant:
+
+```text
+signed at 2025-03-08T23:10:44Z; judged at 2026-04-17T08:55:45Z, the key's newest
+self-signature, because the key was refreshed after it signed (go-zpkg/zpkb#512)
+```
+
+An expiry refusal now says that the cause is expiry. Before, it got the
+`--sig-covers` hint, which is about which **bytes** were signed.
+
+⚠ One behaviour change, stated: a data signature that carries **its own**
+expiry, which ended between the signing and a later refresh, is now refused.
+One clock cannot serve both cases, and release signatures rarely carry an
+expiry.
+
+⚠ And the project page names the wrong keys.
+[libidn's page on gnu.org](https://www.gnu.org/software/libidn/) lists
+two keys for its releases. Both have expired (2014 and 2021), and neither one
+signed 2.3.8. The recipe takes the signer's fingerprint from the GNU keyring and
+records that limit in its `provenance` block.
+
 ### The first recipe that carries one {#the-first-recipe-that-carries-one}
 
 `gnu.org/gzip` in `go-zpkg/recipes` is the fourth whole recipe of the
