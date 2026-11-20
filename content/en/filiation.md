@@ -249,6 +249,55 @@ On main the split is now 64 standalone, 3 fragments and 6 absent. A recipe that
 exists but does not parse is an error on the build path too. `curl` now declares
 libpsl (go-zpkg/recipes#194).
 
+⚠ **A retired override is dead, and `lint` says which (zpkb v0.91.0).** The same
+change left every logical override (`go-zpkg/packages`' `overrides/*.hcl`) whose
+project has a standalone recipe parsed, reviewed and applied by nothing.
+`zpkb lint --overrides <dir>` reads that directory and reports each dead one,
+with a verdict from running its operations against a copy of the recipe: *fix
+already in the recipe*, *premise gone*, or *fix MISSING from the recipe*, the
+only one that is a defect to carry over. It warns and exits 0 by default;
+`--require-live-overrides` makes a dead override a refusal. Measured on
+2026-11-20: **29 of 217** overrides were dead, and **7** of those lacked their
+fix (go-zpkg/zpkb#517). An empty or unreadable directory fails rather than
+reporting none.
+
+⚠ **A build can pin every artifact it needs (zpkb v0.92.0).** `distributable`
+pins the one main source. Anything else a build fetched had to come from a `curl`
+in its script, outside any digest, so the bytes shipped were whatever the host
+served that day (go-zpkg/zpkb#487). A recipe now lists them in `sources`:
+
+```hcl
+sources = [
+  { url = "https://example.org/tk-{{version}}.tar.gz", sha256 = { "9.0.3" = "<64 hex>" },
+    dest = "tk", "strip-components" = 1 },
+  { url = "https://example.org/fix.patch", sha256 = "<64 hex>", dest = "patches",
+    extract = false },
+]
+```
+
+Every entry is fetched, `sha256` is mandatory (a digest, or a version to digest
+map), and a mismatch, a missing digest, a git `ref`, a `dest` outside the build
+directory or any fetch error fails the build. `extract = false` copies the file
+instead of unpacking it; it is asked for, never inferred from an unknown
+extension, so a misspelt `.tar.gzz` still fails loudly. It also works on
+`distributable` itself, for a package that is a single file such as a CA bundle.
+Each source is recorded as a provenance material, after the main one. ⚠ A list
+**`distributable` is still a list of mirrors** of one source (first answer wins),
+not additional sources; that is what `sources` is for (go-zpkg/zpkb#518).
+
+⚠ **A script that fetches outside both is now countable (zpkb v0.93.0).**
+`zpkb lint --require-pinned-fetches` fails a recipe whose `build.script` or
+`build.env` runs `curl`, `wget`, `git clone`, `svn checkout` or `hg clone`, and
+`--max-script-fetches N` is its ratchet: it refuses an increase and a stale
+ceiling, as `--max-fragments` does. `pip`, `npm`, `go` and `cargo install` do
+not count (they build the source already pinned; counting them read 549 recipes,
+about five times too many), the `test` block is reported apart, and each finding
+names its shape: `floating` (a `blob/main` URL), `patch`, `archive` or `other`.
+Measured on 2026-11-20: **113 recipes, 156 lines** on `pkgxdev/pantry`, and **2
+recipes, 3 lines** on `go-zpkg/recipes` (`nvidia.com/cuda-cudart`,
+`rust-lang.org/cargo`), so `--max-script-fetches 2` is that tree's ceiling
+(go-zpkg/zpkb#487).
+
 **Not kept:** compatibility. `package.yml` and the JSON Schema derived from
 libpkgx's parser are on the way out with the rest of it; `package.hcl` and its
 own schema are the format this project has.
@@ -274,7 +323,9 @@ fixed-output derivations whose hash is declared in advance.
 The gap is narrower than that sounds, because sources are pinned by content:
 an archive by digest, a git recipe by commit (`bk`'s `source.go`,
 `fetch/fetch.go`). What is missing is the *enforcement* — nothing stops a
-build step from fetching something nobody declared.
+build step from fetching something nobody declared. `sources` gives such a fetch
+somewhere to be pinned, and `lint --max-script-fetches` counts the ones that are
+not, but the build itself still reaches the network.
 
 ### What a time machine would still need {#time-machine}
 
