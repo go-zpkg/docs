@@ -161,6 +161,24 @@ signed, and the two platforms need different work.
 so a library found beside the binary is found beside it anywhere. The entry can
 be rewritten in place, because the replacement is shorter than what it replaces.
 
+The same in-place edits are available as a standalone tool,
+[`go-binfmt/elfpatch`](https://github.com/go-binfmt/elfpatch) (v0.2.0), in
+go-binfmt, the organisation for binary-format tooling. It is pure
+Go and uses patchelf's flag names: `--print-rpath`, `--set-rpath`,
+`--set-interpreter`, `--remove-needed`, `--replace-needed`, `--shrink-rpath`.
+It adds three things patchelf does not do:
+
+- every write is atomic;
+- after writing, it reads the file back and checks that only the targeted
+  field changed;
+- `--dry-run` shows the change without writing it.
+
+A value that does not fit in the existing slot is **refused** and nothing is
+written. Growing the file, as patchelf does by adding a loadable segment, is
+phase 2. CI checks it against patchelf on real binaries built by gcc: the
+dynamic sections and the printed values match, and the edited programs run.
+The factory does not use it yet; it still uses its own in-place code.
+
 **macOS.** Two things have to be right at once, and each fails silently on its
 own.
 
