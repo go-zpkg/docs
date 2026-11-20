@@ -200,6 +200,33 @@ counts how many of our recipes resolve without the pantry underneath, and
 `--max-fragments N` is a ratchet that refuses both an increase **and** a
 ceiling nobody lowers.
 
+⚠ **That count is about a tree, and the work is about a closure.** Over
+`go-zpkg/recipes` it says 183 of 253 recipes cannot resolve alone — true, and
+most of them are for projects no base toolchain needs. So since zpkb v0.87.0
+the same question is asked of the set actually being built:
+
+```
+$ zpkb closure -build -require-standalone -overlay <recipes> go-zpkg/base-toolchain
+closure: 77 project(s); 53 standalone in the overlay, 4 fragment(s), 20 absent from it
+```
+
+(measured 2026-11-20). It is a **three-way split, not a count**, because the
+two remainders need different work: a *fragment* is a recipe of ours that
+resolves only because the pantry is merged underneath, and needs completing; an
+*absence* has no recipe of ours at all, and needs writing. A tree-wide count
+cannot see an absence — a project with no recipe of ours is not in that tree to
+be counted, so it reads as nothing. The populations are required to sum to the
+closure, so an absence cannot be misfiled as anything else; the flag's first
+run did exactly that, filing 18 absences as "unreadable", and the arithmetic
+check exists because of it.
+
+⚠ **And the closure can grow when a recipe becomes honest.** Completing
+`curl.se` exposed that it links libpsl without declaring it; declaring the edge
+measured **93** projects instead of 77, Haskell among the additions. The recipe
+refuses libpsl instead, as a stated and reversible downgrade — but the point
+for this page is that the denominator is a measurement too, and an undeclared
+dependency is one of the ways it is wrong.
+
 **Not kept:** compatibility. `package.yml` and the JSON Schema derived from
 libpkgx's parser are on the way out with the rest of it; `package.hcl` and its
 own schema are the format this project has.
