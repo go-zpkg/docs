@@ -227,6 +227,28 @@ refuses libpsl instead, as a stated and reversible downgrade — but the point
 for this page is that the denominator is a measurement too, and an undeclared
 dependency is one of the ways it is wrong.
 
+⚠ **A standalone recipe is the whole recipe (zpkb v0.90.0, artifact v0.90.0).**
+Until then the measurement and the build disagreed: the factory built upstream's
+recipe for any project the pantry also carries, and resolution merged upstream's
+keys under ours, so a recipe that stated its own `dependencies` still inherited
+every entry it did not name (go-zpkg/zpkb#514). A recipe that
+`artifact.IsStandalone` accepts, one that states its own `versions`,
+`distributable` and `build`, is now used alone, with no flag: the factory builds
+it, resolution and the closure return it unmerged, and the logical overrides no
+longer apply to it (go-zpkg/zpkb#516 tracks that). Fragments keep the old merge.
+The consumer's resolver and the builder share the one predicate, so they agree.
+
+The effect is measured on the same commits, before and after:
+
+| closure of `go-zpkg/base-toolchain` | before | after |
+| --- | --- | --- |
+| libpsl branch of `go-zpkg/recipes` | 94 projects | 76 (upstream's ICU, meson and python are no longer inherited) |
+| `go-zpkg/recipes` main | 77 projects | 73 (`cpanmin.us`, `flex` and `x.org/util-macros` were only there through merged upstream keys) |
+
+On main the split is now 64 standalone, 3 fragments and 6 absent. A recipe that
+exists but does not parse is an error on the build path too. `curl` now declares
+libpsl (go-zpkg/recipes#194).
+
 **Not kept:** compatibility. `package.yml` and the JSON Schema derived from
 libpkgx's parser are on the way out with the rest of it; `package.hcl` and its
 own schema are the format this project has.
