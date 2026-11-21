@@ -691,6 +691,30 @@ because it is retired, not revoked. If instead the key **leaked**, it goes in
 `RevokedSigningKeys` with a reason, and everything it signed has to be
 rebuilt — see above for why no date can spare you that.
 
+### The current key, and the two retired ones {#current-key}
+
+The key has been rotated twice, on **2026-11-06** and **2026-11-21**
+(`go-zpkg/artifact` v0.91.0 made the current one the trusted
+`SigningPublicKey`):
+
+| key id | state | what it signed |
+| --- | --- | --- |
+| `e1c51236d062b0d0` | current (`RWThxRI20GKw0BWqZHXpqJ/Wo2nX8ntSLIrXIFwK/FKm9F/vSE6Bl+mU`) | everything from 2026-11-21 |
+| `df35c3a46931d3e6` | retired, as `go-zpkg-until-2026-11-21` | 2026-11-06 to 2026-11-21 |
+| `3eae61fe7d7cb689` | retired, as `go-zpkg-until-2026-11` | every artifact before 2026-11-06 |
+
+Both retired keys are still trusted, so nothing already signed stops
+verifying. A client built before 2026-11-21 does not trust the current key and
+refuses what it signs: upgrade it, or add the key with
+
+```sh
+export ZPKG_EXTRA_TRUSTED_KEYS='go-zpkg:RWThxRI20GKw0BWqZHXpqJ/Wo2nX8ntSLIrXIFwK/FKm9F/vSE6Bl+mU'
+```
+
+The table is kept in the
+[`go-zpkg/artifact` README](https://github.com/go-zpkg/artifact#readme), which
+is the source of truth.
+
 ## Verify on install {#verify-on-install}
 
 The [`go-zpkg/artifact`](https://github.com/go-zpkg/artifact) backend that both `zpkx`
