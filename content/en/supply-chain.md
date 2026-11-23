@@ -660,8 +660,16 @@ sends the reader hunting for a corrupted paste.
 | | |
 | --- | --- |
 | **the secret key** | lives wherever this table says it lives. If this row is still a placeholder, that is the defect |
-| **in CI** | `ARTIFACT_SIGNING_KEY`, an organisation secret of `go-zpkg`, scoped to the `packages` repository |
+| **in CI, production** | `ZPKG_SIGNING_KEY`, a secret of the `packages` repository. It signs `oci://ghcr.io/go-zpkg/packages` and nothing else, and a run for that destination fails when it is empty |
+| **in CI, seed key** | `ARTIFACT_SIGNING_KEY`. It signs only non-production destinations such as `oci://ghcr.io/go-zpkg/smoke`, and never a `go-zpkg` production artifact |
 | **the public half** | `artifact.SigningPublicKey`, compiled into every released client |
+
+Only the GitHub-hosted `publish` job of each `packages` workflow holds a
+signing key or a token that can write to the registry. The build jobs on
+self-hosted runners hold neither, and run with a read-only token. Between the
+two, the staged tree is checked against the digest the build job declared, and
+a missing declaration fails the run. `oci://ghcr.io/go-zpkg/smoke` is a
+non-production destination, signed with the seed key.
 
 A GitHub secret **cannot be read back**, ever. It is a write-only copy, not a
 backup — so a key that exists only there is a key you will lose.
@@ -682,7 +690,9 @@ both hold one base64 line:
    `RetiredSigningPublicKeys` as `name:key`, and put the new public key in
    `SigningPublicKey`. Release `artifact`; the clients pick it up on their next
    release.
-3. Set `ARTIFACT_SIGNING_KEY` to the new **secret** key.
+3. Set `ZPKG_SIGNING_KEY` to the new **secret** key. (`ARTIFACT_SIGNING_KEY`
+   is the seed key for non-production destinations; rotate it separately, and
+   only if it was the one that changed.)
 4. Publish one artifact and read it back from another machine — `zpks builds
    <project>@<version>` must show it signed by the new name.
 
