@@ -742,6 +742,22 @@ The table is kept in the
 [`go-zpkg/artifact` README](https://github.com/go-zpkg/artifact#readme), which
 is the source of truth.
 
+### The seed key {#seed-key}
+
+`ARTIFACT_SIGNING_KEY` is the **non-production smoke and rehearsal key**. It
+signs the seed registry and non-production destinations, and **clients never
+trust it**: it is in no trusted-key list. Its public half:
+
+| key id | public key |
+| --- | --- |
+| `AC15D0943C9EE308` | `RWSsFdCUPJ7jCHA0LJCPd23ONL4OOKV5efaYVFSbp8jwO/JvWI0oKUYf` |
+
+A production promotion that has to verify something the seed key signed is
+handed that line explicitly, as `source_trusted_keys: seed-b6:RWSsFdCUPJ7jCHA0LJCPd23ONL4OOKV5efaYVFSbp8jwO/JvWI0oKUYf`,
+for that run only. It is derived from the secret by the `signing public keys`
+workflow in `go-zpkg/packages` (a GitHub secret cannot be read back), which
+also checks that `ZPKG_SIGNING_KEY` still equals the trusted `SigningPublicKey`.
+
 ## Verify on install {#verify-on-install}
 
 The [`go-zpkg/artifact`](https://github.com/go-zpkg/artifact) backend that both `zpkx`
