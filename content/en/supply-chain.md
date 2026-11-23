@@ -115,6 +115,23 @@ Three further properties, each a way this could have been built wrong:
   judgement about the artifact — a gate that folds the two together turns every
   network blip into a permanent verdict.
 
+### A promotion stages and verifies without a secret {#a-promotion-stages-and-verifies-without-a-secret}
+
+Since `zpkb` v0.102.0, `zpkb factory --mirror-from <seed> --require-origin
+--stage-only` fetches the seed artifacts and verifies each one: the seed key's
+signature, the signed origin claim, and that the downloaded bytes are the digest
+that claim names. It signs and pushes nothing, so the job that runs it holds no
+key and no registry password. It writes a `publish-plan.json` whose entries carry
+the verdict `mirrored-verified` (never `pass`: no test ran) and a record of what
+was verified.
+
+The hosted publish job runs `zpkb publish-stage`, which accepts that verdict only
+when the record says the verification succeeded, the source is an `oci://`
+registry, the digest equals the staged file's, and the origin is sovereign.
+`--require-origin` is mandatory with `--stage-only --mirror-from`, and the
+dispatch input `require_origin=1` is mandatory with `mirror_from`; verification
+cannot be switched off for a promotion.
+
 An artifact published before `zpkb` v0.47.0 records no origin and therefore reads as
 **not promotable**. That is the intended answer rather than a regression:
 nothing is promoted that cannot be vouched for.
