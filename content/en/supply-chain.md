@@ -136,6 +136,50 @@ An artifact published before `zpkb` v0.47.0 records no origin and therefore read
 **not promotable**. That is the intended answer rather than a regression:
 nothing is promoted that cannot be vouched for.
 
+### A seed pass builds from another registry, and says so {#a-seed-pass-builds-from-another-registry-and-says-so}
+
+The first build of our own toolchain needs something that runs. Since `zpkb`
+v0.107.0 a **seed pass** uses another registry's signed artifacts (go-pkgx's) as
+the build environment of one pass, and records that it did:
+
+```sh
+zpkx --seed-from oci://ghcr.io/go-pkgx/packages --seed-ledger seed.jsonl -- \
+  zpkb factory --stage-only --seed-ledger seed.jsonl ...
+zpkb builder --seed-from oci://ghcr.io/go-pkgx/packages --seed-ledger seed.jsonl --out rootfs
+```
+
+- `factory --seed-ledger` needs `--stage-only` and a seed in force. A seed in
+  force without the flag is refused, and the flag without a seed is refused, so
+  an artifact built from a seed is never signed unmarked. `--mirror-from` is
+  refused with it.
+- The factory reads the ledger once, before any recipe has run, and signs that
+  reading. `--seed-ledger-sha256` names the digest the outside of the build
+  recorded for it; a ledger that does not match is refused.
+- `publish-stage` writes the seed into the provenance (`externalParameters.seed`,
+  `seed-source`, and one material per seed artifact with its digest) and into the
+  signed claim `zpkb-seed`, so the fact cannot be stripped afterwards.
+- A seed-built artifact is **never promotable**: `--mirror-from ...
+  --require-origin` refuses a signed `zpkb-seed`. Only a second pass that builds
+  from our own outputs, with no seed, produces artifacts that promote.
+- `builder --seed-from` installs the rootfs from the seed (signatures verified,
+  HTTP and unverified refused) and refuses `--dist` beside it. go-pkgx stays
+  refused as a dependency source and as a publish target.
+
+Since `zpkb` v0.108.0 the seed pass is checked more strictly:
+
+- `origin --seeded` compares the installed tree with the artifact the signature
+  vouches for. The pulled bytes must hash to the **signed digest**, so a registry
+  that re-points a tag between the digest read and the pull is refused. Every
+  file and directory must also match in kind, permission, setuid, setgid and
+  sticky bits, content and link target.
+- The provisioner's per-call ledgers are refused when they exist before their
+  call, and the plan-phase ledger must still be empty when the seed is signed.
+
+A limit, stated plainly: those ledgers live in a private `0700` temporary
+directory of the factory's user, so code running as that same user, or as root,
+while a build runs is outside what these checks cover. This is not a tamper-proof
+record, and it is not claimed to be.
+
 ## And where a recipe declares nothing, which is nearly everywhere {#and-where-a-recipe-declares-nothing-which-is-903-of-904}
 
 Verifying a declared `sha:` is worth having and reaches almost nothing. Measured
