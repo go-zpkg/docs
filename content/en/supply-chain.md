@@ -172,12 +172,19 @@ Since `zpkb` v0.108.0 the seed pass is checked more strictly:
   that re-points a tag between the digest read and the pull is refused. Every
   file and directory must also match in kind, permission, setuid, setgid and
   sticky bits, content and link target.
-- The provisioner's per-call ledgers are refused when they exist before their
-  call, and the plan-phase ledger must still be empty when the seed is signed.
+- The plan-phase ledger must still be empty when the seed is signed.
 
-A limit, stated plainly: those ledgers live in a private `0700` temporary
-directory of the factory's user, so code running as that same user, or as root,
-while a build runs is outside what these checks cover. This is not a tamper-proof
+Since `zpkb` v0.113.0 the provisioner's per-call ledger is an inherited pipe
+(`/dev/fd/3`) instead of a file in a temporary directory. There is no file left
+to change between zpkx's write and the factory's read, and a process that
+inherits the descriptor can only append. The factory reads the pipe to EOF with a
+short grace period, so a descendant that keeps it open cannot hang the build. A
+ledger over the size bound, an unreadable pipe and a malformed line are refused,
+never skipped. On a platform that cannot pass a descriptor, the provisioner
+refuses to run.
+
+A limit, stated plainly: code running as the factory's user, or as root, while a
+build runs is outside what these checks cover. This is not a tamper-proof
 record, and it is not claimed to be.
 
 ## And where a recipe declares nothing, which is nearly everywhere {#and-where-a-recipe-declares-nothing-which-is-903-of-904}
