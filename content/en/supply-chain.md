@@ -183,6 +183,13 @@ ledger over the size bound, an unreadable pipe and a malformed line are refused,
 never skipped. On a platform that cannot pass a descriptor, the provisioner
 refuses to run.
 
+Since `zpkb` v0.114.0 a seeded `factory` run refuses a `zpkx` older than 0.46.1,
+the version zpkb drives, and the refusal names both versions.
+The version comes from the binary's build information, then from a stamped
+`zpkx --version`. A `zpkx` whose version cannot be read (a development build) is
+refused too, unless `ZPKB_ALLOW_UNVERSIONED_ZPKX=1` is set. That opt-in prints a
+warning and never excuses a `zpkx` known to be older than the minimum.
+
 A limit, stated plainly: code running as the factory's user, or as root, while a
 build runs is outside what these checks cover. This is not a tamper-proof
 record, and it is not claimed to be.
