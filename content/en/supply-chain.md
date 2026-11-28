@@ -517,6 +517,25 @@ not belt-and-braces for its own sake: this builder has a recorded incident of
 `curl` writing a 504 error page and `shasum` hashing it into a perfectly
 plausible digest, which is why `zpkb sourcepin` exists at all.
 
+## One unreachable host must not cost a whole run {#one-unreachable-host}
+
+Resolving a version is one GET against the host a recipe names, retried five
+times. In seed pass 1e `ftp.gnu.org` timed out from the runner's network while
+`ftpmirror.gnu.org` answered, and 26 projects each spent about three minutes on
+it until the job timeout. Since zpkb v0.115.0:
+
+- **Host breaker.** Once a host has spent its retries on a transport failure
+  (timeout, refused, reset), every later lookup to it in the same process fails
+  at once, naming the first failure. It lives in memory for that run only and is
+  never persisted. An HTTP answer such as 404 never opens it.
+- **GNU mirror.** A failed `https://ftp.gnu.org/gnu/...` listing is read from
+  `ftpmirror.gnu.org` instead, and a line on stderr says so. `ZPKB_GNU_MIRROR`
+  names another base URL; `off` or `none` disables it.
+
+Only the version **listing** moves. The sources a build downloads are still
+pinned by digest in the recipe, so a mirror cannot change what is built, only
+which version numbers are offered.
+
 ## The trust set {#the-trust-set}
 
 Signatures verify against a **set** of keys and a **threshold** of them, not
