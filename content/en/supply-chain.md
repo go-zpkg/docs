@@ -532,9 +532,28 @@ it until the job timeout. Since zpkb v0.115.0:
   `ftpmirror.gnu.org` instead, and a line on stderr says so. `ZPKB_GNU_MIRROR`
   names another base URL; `off` or `none` disables it.
 
-Only the version **listing** moves. The sources a build downloads are still
-pinned by digest in the recipe, so a mirror cannot change what is built, only
-which version numbers are offered.
+Since zpkb v0.119.0 **source downloads** share both defences. In seed pass 1f,
+24 tarball downloads each waited out the same `ftp.gnu.org` timeout (about 64
+minutes) because only listings knew about the mirror. Now a failed
+`https://ftp.gnu.org/gnu/...` download is read from the mirror at once and the
+host's circuit opens, so the following downloads skip the timeout. Any other host
+that spent its retries opens its circuit: the next download from it fails at once
+with a `skipped` error instead of being retried. `ZPKB_GNU_MIRROR=off` disables
+the mirror for downloads too.
+
+A mirror changes where the bytes come from, never whether they are accepted. The
+digest pin is still checked against the **original** URL and the bytes that
+actually arrived, so a mirror serving other bytes is refused.
+
+## The test environment has the build's loader path {#test-loader-path}
+
+Since zpkb v0.119.0 the environment a package's `test:` block runs in carries the
+same `LD_LIBRARY_PATH` entries as its build: the `lib` and `lib64` directories of
+its runtime and test dependencies, resolved by the hash of the build made in the
+same run. A dependency built minutes earlier is in no registry, which is why
+perl's test failed to find `libcrypt.so.1`. A standalone `zpkb test` resolves
+nothing and is unchanged. This does not help a library that no package provides
+at all, such as `libpcre2-8.so.0` for grep: that one has to be in the seed.
 
 ## The trust set {#the-trust-set}
 
