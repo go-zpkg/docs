@@ -190,6 +190,16 @@ The version comes from the binary's build information, then from a stamped
 refused too, unless `ZPKB_ALLOW_UNVERSIONED_ZPKX=1` is set. That opt-in prints a
 warning and never excuses a `zpkx` known to be older than the minimum.
 
+Since `zpkb` v0.120.0 `builder --require-sonames` turns the staged-tree census
+into a gate. `builder` always reads the `DT_NEEDED` of every ELF it staged (Go's
+`debug/elf`) and reports each soname that no staged file or symlink provides;
+that report is only a log line by default. With the flag, any such soname makes
+the run fail, with the count, before the rootfs is used. It is the check that
+would have caught the pass-1f seed: its `grep` wanted `libpcre2-8.so.0` because
+the recipe listed `pcre.org/v2` under `build.dependencies` only (now a runtime
+`dependencies` entry), and its `libpsl` was the ICU-linked 0.23.1 where our own
+0.23.3 recipe links libidn2. The check sees `DT_NEEDED`, never `dlopen`.
+
 A limit, stated plainly: code running as the factory's user, or as root, while a
 build runs is outside what these checks cover. This is not a tamper-proof
 record, and it is not claimed to be.
